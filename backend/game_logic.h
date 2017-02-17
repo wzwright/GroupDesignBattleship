@@ -44,15 +44,27 @@ typedef enum {
 /* All errors are guaranteed to be negative */
 
 /** Tried to join a nonexistent game, or a game in progress */
-extern int ERR_NO_SUCH_GAME;
+#define ERR_NO_SUCH_GAME -1
 /** Tried to submit a grid for a game that has already started */
-extern int ERR_ALREADY_STARTED;
+#define ERR_ALREADY_STARTED -2
 /** Tried to submit a grid that does not make sense */
-extern int ERR_INVALID_GRID;
+#define ERR_INVALID_GRID -3
 /** Used a nonexistent or invalid plyr_id */
-extern int ERR_INVALID_PLYR_ID;
+#define ERR_INVALID_PLYR_ID -4
 /** Tried to bomb an invalid position */
-extern int ERR_INVALID_BOMB_TARGET;
+#define ERR_INVALID_BOMB_TARGET -5
+
+static inline const char* error_to_string(int error) {
+	switch(error) {
+	case 0:                       return "Success";
+	case ERR_NO_SUCH_GAME:        return "No such game";
+	case ERR_ALREADY_STARTED:     return "Already started";
+	case ERR_INVALID_GRID:        return "Invalid grid";
+	case ERR_INVALID_PLYR_ID:     return "Invalid player ID";
+	case ERR_INVALID_BOMB_TARGET: return "Invalid bomb target";
+	default:                      return "Unknown error";
+	}
+}
 
 /*** FUNCTIONS ***/
 /* All functions with an integer result type return an error value in
