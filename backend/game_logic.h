@@ -94,12 +94,21 @@ plyr_state bship_logic_get_plyr_state(plyr_id);
 
 /** Asks the game logic engine to notify when a given player enters a
  * given state. If player is already in that state, game logic engine
- * notifies right away. */
-int bship_logic_request_notify(plyr_id, plyr_state);
+ * notifies right away.
+ *
+ * If the state change does not happen in a reasonable time (or the
+ * game finishes/is deleted due to inactivity), the game logic engine
+ * must still call [bship_logic_notification] (with [success] set to
+ * false) so that the user data can be cleaned up */
+int bship_logic_request_notify(plyr_id, plyr_state, void *user_data);
 
 /** Used by the game logic engine to notify that a player entered a
  * state. This function is the only one in this file not implemented
- * by the game logic engine. */
-void bship_logic_notification(plyr_id, plyr_state);
+ * by the game logic engine. The [user_data] is the same pointer
+ * previously passed to [bship_logic_request_notify].
+ *
+ * [success]is true if the player entered the state, and false if the
+ * notification timed out. */
+void bship_logic_notification(plyr_id, plyr_state, void *user_data, _Bool success);
 
 #endif /* GAME_LOGIC_H */
