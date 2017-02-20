@@ -1,0 +1,12 @@
+{
+	"vhosts": [{
+		"name": "localhost",
+		"port": "8080",
+		"ws-protocols": [{
+			"battleships-protocol": {
+				"status": "ok",
+				"default": 1
+			}
+		}]
+	}]
+}
