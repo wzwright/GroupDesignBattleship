@@ -2,6 +2,14 @@
 #include <stdarg.h>
 #include <stdlib.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpointer-to-int-cast"
+#define STB_DEFINE
+#include "stb.h"
+#pragma GCC diagnostic pop
+#pragma GCC diagnostic warning "-Wall"
+#pragma GCC diagnostic ignored "-Wunused-function"
+
 #define LWS_DLL
 #include <jansson.h>
 #include "libwebsockets/lib/libwebsockets.h"
@@ -13,9 +21,17 @@ struct per_session_data__battleships {
 };
 
 struct notification_user_data {
+	struct lws *wsi;
 	struct per_session_data__battleships *pss;
 	json_t *id;
 };
+
+/* Set of [struct per_session_data__battleships*] that are valid.
+ * A pointer is inserted here when a connection is established, and
+ * removed when a connection is closed. This is used when a
+ * notification comes in to enable us to ignore notifications coming
+ * on closed connections */
+stb_ps *valid_pss = NULL;
 
 /** Like json_pack(fmt, ...) in Jansson, but halts program on error */
 static json_t *croaking_json_pack(const char* fmt, ...) {
@@ -71,6 +87,7 @@ static void handle_request(struct lws *wsi, struct per_session_data__battleships
 	get_game_end_result gge_result;
 	plyr_id pid;
 	plyr_state pstate;
+	struct notification_user_data *notify_user;
 
 	result = json_unpack_ex(request, &error, JSON_STRICT, "{s: s, s: s, s: o, s?: o}",
 	               "jsonrpc", &jsonrpc, "method", &method, "id", &id, "params", &params);
@@ -108,18 +125,29 @@ static void handle_request(struct lws *wsi, struct per_session_data__battleships
 		/* Can't error, returns game_over = false on error */
 		/* The below is wrong because grid is not a json_t. XXX: once grid means something, encode it properly */
 		REPLY(croaking_json_pack("{s: b, s: b, s: n}", "game_over", gge_result.game_over, "won", gge_result.won, "grid"));
-	} else if(strcmp(method, "waitForPlayer") == 0) {
+	} else if(strncmp(method, "waitFor", 7) == 0) {
 		EXPECT_PARAMS(1);
-		result = bship_logic_request_notify((plyr_id)PARAM_ID, SUBMIT_GRID, pss);
-		DIE_ON_ERROR(result);
-	} else if(strcmp(method, "waitForSubmit") == 0) {
-		EXPECT_PARAMS(1);
-		result = bship_logic_request_notify((plyr_id)PARAM_ID, BOMB, pss);
-		DIE_ON_ERROR(result);
-	} else if(strcmp(method, "waitForMove") == 0) {
-		EXPECT_PARAMS(1);
-		result = bship_logic_request_notify((plyr_id)PARAM_ID, BOMB, pss);
-		DIE_ON_ERROR(result);
+		if(strcmp(method, "waitForPlayer") == 0)
+			pstate = SUBMIT_GRID;
+		else if(strcmp(method, "waitForSubmit") == 0)
+			pstate = BOMB;
+		else if(strcmp(method, "waitForMove") == 0)
+			pstate = BOMB;
+		else {
+			DIE(id, -32601, "Method not found", NULL);
+			return;
+		}
+		notify_user = malloc(sizeof (struct notification_user_data));
+		notify_user->wsi = wsi;
+		notify_user->pss = pss;
+		notify_user->id  = id;
+		json_incref(id);
+		result = bship_logic_request_notify((plyr_id)PARAM_ID, pstate, notify_user);
+		if(result < 0) {
+			json_decref(id);
+			free(notify_user);
+			DIE_ON_ERROR(result);
+		}
 	} else {
 		DIE(id, -32601, "Method not found", NULL);
 	}
@@ -141,10 +169,12 @@ static int callback_bship(struct lws *wsi, enum lws_callback_reasons reason, voi
 		break;
 
 	case LWS_CALLBACK_ESTABLISHED:
+		valid_pss = stb_ps_add(valid_pss, pss);
 		pss->pending_replies_count = 0;
 		break;
 
 	case LWS_CALLBACK_CLOSED:
+		valid_pss = stb_ps_remove(valid_pss, pss);
 		for(i = 0; i < pss->pending_replies_count ; i++)
 			json_decref(pss->pending_replies[i]);
 		break;
@@ -181,13 +211,27 @@ static int callback_bship(struct lws *wsi, enum lws_callback_reasons reason, voi
 		handle_request(wsi, pss, request);
 		json_decref(request);
 		break;
+	default:
+		break;
 	}
 	return 0;
 }
 
-void bship_logic_notification(plyr_id id, plyr_state state, void *user) {
-	struct per_session_data__battleships *pss = (struct per_session_data__battleships*) user;
-	/* XXX: do nothing yet */
+void bship_logic_notification(plyr_id pid, plyr_state state, void *user, _Bool success) {
+	struct notification_user_data *notify_data = (struct notification_user_data*) user;
+	struct lws *wsi = notify_data->wsi;
+	struct per_session_data__battleships *pss = notify_data->pss;
+	json_t *id = notify_data->id;
+
+	if(stb_ps_find(valid_pss, pss)) { /* Connection still alive */
+		if(success)
+			REPLY(json_null());
+		else
+			DIE(id, -100, "Notification timed out", NULL);
+	}
+
+	json_decref(id);
+	free(user);
 }
 
 static const struct lws_protocols protocols[] = {
