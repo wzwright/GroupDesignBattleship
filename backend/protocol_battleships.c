@@ -143,10 +143,10 @@ static void handle_request(struct lws *wsi, struct per_session_data__battleships
 		EXPECT_PARAMS(1);
 		if(strcmp(method, "waitForPlayer") == 0)
 			pstate = SUBMIT_GRID;
-		else if(strcmp(method, "waitForSubmit") == 0)
+		else if(strcmp(method, "waitForYourTurn") == 0)
 			pstate = BOMB;
-		else if(strcmp(method, "waitForMove") == 0)
-			pstate = BOMB;
+		else if(strcmp(method, "waitForGameEnd") == 0)
+			pstate = GAME_OVER;
 		else {
 			DIE(id, -32601, "Method not found", NULL);
 			return;
