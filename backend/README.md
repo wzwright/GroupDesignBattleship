@@ -27,6 +27,15 @@
     > {"jsonrpc": "2.0", "method": "submitGrid", "id": 222}
     < {"id": 222, "error": {"code": -32602, "message": "Invalid params", "data": "Expected 2 params"}, "jsonrpc": "2.0"}
 
+    > {"jsonrpc": "2.0", "method": "submitGrid", "id":223, "params":[7, []]}
+    < {"id": 223, "error": {"code": -32602, "message": "Invalid params", "data": "Second parameter must be a 5-element array"}, "jsonrpc": "2.0"}
+
+    > {"jsonrpc": "2.0", "method": "submitGrid", "id":224, "params":[7, [[],[],[],[],[]]]}
+    < {"id": 224, "error": {"code": -32602, "message": "Invalid params", "data": "Array index 0 out of range"}, "jsonrpc": "2.0"}
+
+    > {"jsonrpc": "2.0", "method": "submitGrid", "id":225, "params":[7, [[0,0, 1,1], [2,2, 3,3], [4,4, 5,5], [6,6, 8,8], [10,10, 15,10]]]}
+    < {"id": 225, "result": null, "jsonrpc": "2.0"}
+
     > {"jsonrpc": "2.0", "method": "submitGrid", "id": 223, "params": [7, ""]}
     < {"id": 223, "result": null, "jsonrpc": "2.0"}
 
@@ -40,4 +49,4 @@
     < {"id": 335, "result": false, "jsonrpc": "2.0"}
 
     > {"jsonrpc": "2.0", "method": "getGameEnd", "id": 444, "params":[7]}
-    # server crashes on this command as getGameEnd is not yet implemented
+    < {"id": 444, "result": {"game_over": false, "won": false, "grid": null}, "jsonrpc": "2.0"}

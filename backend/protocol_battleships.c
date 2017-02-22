@@ -79,9 +79,10 @@ static json_t *make_json_rpc_result(json_t *id, json_t *result) {
 static void handle_request(struct lws *wsi, struct per_session_data__battleships *pss, json_t *request) {
 	int paramN, result, x, y;
 	char *jsonrpc = "", *method = "";
-	json_t *params = NULL, *id = NULL;
+	json_t *params = NULL, *id = NULL, *grid_param;
 	json_error_t error;
 	grid grd;
+	ship shp;
 
 	new_game_result ng_result;
 	get_game_end_result gge_result;
@@ -107,7 +108,13 @@ static void handle_request(struct lws *wsi, struct per_session_data__battleships
 		REPLY(json_integer(pid));
 	} else if(strcmp(method, "submitGrid") == 0) {
 		EXPECT_PARAMS(2);
-		grd = NULL; /* XXX: currently ignoring grid parameter */
+		grid_param = json_array_get(params, 1);
+		DIE_IF(json_array_size(grid_param) != 5, id, -32602, "Invalid params", json_string("Second parameter must be a 5-element array"));
+		for(x = 0 ; x < 5 ; x++) {
+			result = json_unpack_ex(json_array_get(grid_param, x), &error, JSON_STRICT, "[iiii]",
+			                        &grd.s[x].x1, &grd.s[x].y1, &grd.s[x].x2, &grd.s[x].y2);
+			DIE_IF(result, id, -32602, "Invalid params", json_string(error.text));
+		}
 		result = bship_logic_submit_grid((plyr_id)PARAM_ID, grd);
 		DIE_ON_ERROR(result);
 		REPLY(json_null());
@@ -123,8 +130,15 @@ static void handle_request(struct lws *wsi, struct per_session_data__battleships
 		EXPECT_PARAMS(1);
 		gge_result = bship_logic_get_game_end((plyr_id)PARAM_ID);
 		/* Can't error, returns game_over = false on error */
-		/* The below is wrong because grid is not a json_t. XXX: once grid means something, encode it properly */
-		REPLY(croaking_json_pack("{s: b, s: b, s: n}", "game_over", gge_result.game_over, "won", gge_result.won, "grid"));
+		if(gge_result.game_over) {
+			grid_param = json_array();
+			for(x = 0 ; x < 5 ; x++) {
+				shp = gge_result.grid.s[x];
+				json_array_append_new(grid_param, json_pack("[iiii]", shp.x1, shp.y1, shp.x2, shp.y2));
+			}
+		} else /* grid contains junk on game_over = false, send a NULL instead */
+			grid_param = json_null();
+		REPLY(croaking_json_pack("{s: b, s: b, s: o}", "game_over", gge_result.game_over, "won", gge_result.won, "grid", grid_param));
 	} else if(strncmp(method, "waitFor", 7) == 0) {
 		EXPECT_PARAMS(1);
 		if(strcmp(method, "waitForPlayer") == 0)
