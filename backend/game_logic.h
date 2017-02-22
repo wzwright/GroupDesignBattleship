@@ -1,13 +1,22 @@
 #ifndef GAME_LOGIC_H
 #define GAME_LOGIC_H
+#include <stdint.h>
 
 /*** TYPES ***/
 /** Valid IDs are strictly positive */
 typedef int game_id;
 typedef int plyr_id;
 
+/** Represents a ship by its start and end coordinates.
+ * Invariant: x1 <= x2 && y1 <= y2. */
+typedef struct {
+	int8_t x1, y1, x2, y2;
+} ship;
+
 /** Represents an initial positioning of one's ships */
-typedef void* grid; /* XXX: Replace void* with a struct later */
+typedef struct {
+	ship s[5];
+} grid;
 
 typedef struct {
 	game_id gid;
