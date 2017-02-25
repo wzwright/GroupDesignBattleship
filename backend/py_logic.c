@@ -156,6 +156,25 @@ get_game_end_result bship_logic_get_game_end(plyr_id pid) {
 	return r;
 }
 
+plyr_state bship_logic_get_plyr_state(plyr_id pid) {
+	py_init();
+	PyObject *func = PyObject_GetAttrString(module, "get_plyr_state");
+	if ((func == NULL) || !PyCallable_Check(func)) {
+		fprintf(stderr, "bship_logic.get_plyr_state not usable\n");
+		exit(1);
+	}
+	PyObject *args = Py_BuildValue("(i)", pid);
+	PyObject *ret = PyObject_CallObject(func, args);
+	Py_DECREF(func);
+	if (ret == NULL) {
+		fprintf(stderr, "bship_logic.get_plyr_state failed\n");
+		return -10;
+	}
+	long res = PyLong_AsLong(ret);
+	Py_DECREF(ret);
+	return (int)res;
+}
+
 static plyr_id stored_pid = 0;
 static plyr_state stored_state;
 static void* stored_user;
