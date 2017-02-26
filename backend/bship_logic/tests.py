@@ -29,7 +29,7 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(b.join_game(gid+1), b.Error.NO_SUCH_GAME)
 
     def test_submit_invalid(self):
-        "submit_grid fails with some bad grids"
+        "submit_grid fails with some bad grids, pids"
         # game starts, other player joins, we place first
         (gid, pid) = b.new_game()
         otherpid = b.join_game(gid)
@@ -50,6 +50,12 @@ class ApiTests(unittest.TestCase):
                                             ,[0,2,2,2]
                                             ,[0,3,3,3]
                                             ,[0,4,4,5]]), b.Error.INVALID_GRID)
+        # ok grid, bad pid
+        self.assertEqual(b.submit_grid(pid+100, [[0,0,1,0]
+                                                ,[0,1,2,1]
+                                                ,[0,2,2,2]
+                                                ,[0,3,3,3]
+                                                ,[0,4,4,4]]), b.Error.INVALID_PLYR_ID)
         # this should work
         self.assertEqual(b.submit_grid(pid, [[0,0,1,0]
                                             ,[0,1,2,1]
