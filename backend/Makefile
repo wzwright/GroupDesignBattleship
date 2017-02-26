@@ -37,3 +37,6 @@ run:
 
 valgrind:
 	LD_PRELOAD=build/datadir/share/libwebsockets-test-server/plugins/libprotocol_battleships.so valgrind --leak-check=full --read-var-info=yes --track-origins=yes build/bin/lwsws -c build/datadir/config
+
+test:
+	python3 -m unittest bship_logic.tests -v
