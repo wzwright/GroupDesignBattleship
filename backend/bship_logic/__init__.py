@@ -40,28 +40,28 @@ class Player:
                                 # of the points of ships
         self.bomb_attempts = set() # all bomb attempts including
                                    # successes and failures
-        self.join()
+        self.join(game)
 
     def opponent(self):
         "Finds the other player in this player's game"
         game = games[self.gid]
         if game.pid1 == self.pid:
-            return game.pid2
+            return players[game.pid2]
         else:
-            return game.pid1
+            return players[game.pid1]
 
-    def join(self):
+    def join(self, game):
         # When a player is created, we try to join its associated game
         if (game.pid1 is not None) and (game.pid2 is None):
             # We were the second player. Both players can now submit
             # their grids. We'll let the other player go first.
-            game.pid2 = pid
+            game.pid2 = self.pid
             self.state_code = PlayerState.WAIT_FOR_SUBMIT
             players[game.pid1].state_code = PlayerState.SUBMIT_GRID
         elif (game.pid1 is None):
             # this means we were the first player, so we should wait
             # for the other player
-            game.pid1 = pid
+            game.pid1 = self.pid
             self.state_code = PlayerState.WAIT_FOR_JOIN
         else:
             # should never get here
@@ -115,11 +115,12 @@ def correct_lengths(left, grid):
             l = ship_length(ship)
         except:
             return False
+        # if invalid ship size or none left to place
         if (l not in left) or (left[l] <= 0):
             return False
         else:
             left[l] = left[l]-1
-    return True
+    return (sum(left.values()) == 0) # need to have placed all the ships
 
 def valid_grid(grid):
     # The rules of battleship (according to Wikipedia) allow:
@@ -164,7 +165,7 @@ def submit_grid(pid, grid):
     me = players[pid]
     me.grid = grid
     try:
-        opponentstate = me.opponent()
+        opponentstate = me.opponent().state_code
         if opponentstate == PlayerState.WAIT_FOR_SUBMIT:
             # if they were waiting for us, tell them to proceed
             me.opponent().state_code = PlayerState.BOMB
@@ -175,7 +176,8 @@ def submit_grid(pid, grid):
             # they can now submit
             me.state_code = PlayerState.WAIT_FOR_SUBMIT
             me.opponent().state_code = PlayerState.SUBMIT_GRID
-    except:
+    except Exception as e:
+        print(e)
         # if we get to here, this means there was no opponent, this is
         # an illegal submission. should never happen
         return -10
