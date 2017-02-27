@@ -16,6 +16,7 @@ main(int argc, char *argv[]) {
 	                {0,0,0,0}}};
 	bship_logic_submit_grid(7, mygrid);
 	bship_logic_bomb_position(7, 0, 0);
+	bship_logic_get_plyr_state(7);
 	bship_logic_get_game_end(7);
 	return 0;
 }
