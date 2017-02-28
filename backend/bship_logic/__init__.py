@@ -4,8 +4,10 @@ class Error(Enum):
     NO_SUCH_GAME = -1
     ALREADY_STARTED = -2
     INVALID_GRID = -3
-    INVALID_PLYR_ID = -5
-    INVALID_BOMB_TARGET = -6
+    INVALID_PLYR_ID = -4
+    INVALID_BOMB_TARGET = -5
+    NO_OPPONENT = -6
+    OUT_OF_TURN = -7
 
 class PlayerState(Enum):
     WAIT_FOR_JOIN = 0
@@ -45,10 +47,13 @@ class Player:
     def opponent(self):
         "Finds the other player in this player's game"
         game = games[self.gid]
-        if game.pid1 == self.pid:
-            return players[game.pid2]
-        else:
-            return players[game.pid1]
+        try:
+            if game.pid1 == self.pid:
+                return players[game.pid2]
+            else:
+                return players[game.pid1]
+        except KeyError:
+            return None
 
     def join(self, game):
         # When a player is created, we try to join its associated game
@@ -157,29 +162,26 @@ def join_game(gid):
 def submit_grid(pid, grid):
     if pid not in players:
         return Error.INVALID_PLYR_ID
-    if players[pid].grid is not None:
-        # the player has tried to submit a grid twice
-        return Error.INVALID_GRID
+    me = players[pid]
+    if (me.grid is not None) or (me.state_code is not PlayerState.SUBMIT_GRID):
+        # the player has tried to submit a grid twice, or after the
+        # game is over
+        return Error.OUT_OF_TURN
+    if me.opponent() is None:
+        return Error.NO_OPPONENT
     if not valid_grid(grid):
         return Error.INVALID_GRID
-    me = players[pid]
     me.grid = grid
-    try:
-        opponentstate = me.opponent().state_code
-        if opponentstate == PlayerState.WAIT_FOR_SUBMIT:
-            # if they were waiting for us, tell them to proceed
-            me.opponent().state_code = PlayerState.BOMB
-            # we will wait for them to bomb now
-            me.state_code = PlayerState.WAIT_FOR_BOMB
-        else:
-            # else, we are going first, so we'll wait for them and
-            # they can now submit
-            me.state_code = PlayerState.WAIT_FOR_SUBMIT
-    except Exception as e:
-        print(e)
-        # if we get to here, this means there was no opponent, this is
-        # an illegal submission. should never happen
-        return -10
+    opponentstate = me.opponent().state_code
+    if opponentstate == PlayerState.WAIT_FOR_SUBMIT:
+        # if they were waiting for us, tell them to proceed
+        me.opponent().state_code = PlayerState.BOMB
+        # we will wait for them to bomb now
+        me.state_code = PlayerState.WAIT_FOR_BOMB
+    else:
+        # if they are not waiting for us, this means they are still
+        # submitting, so we should wait for them
+        me.state_code = PlayerState.WAIT_FOR_SUBMIT
     return 0
 
 def bad_target(x,y):
@@ -193,11 +195,10 @@ def bomb_position(pid, x, y):
     if bad_target(x,y):
         return Error.INVALID_BOMB_TARGET
     if me.opponent() is None:
-        # no opponent is illegal, shouldn't happen
-        return -10
+        return Error.NO_OPPONENT
     if me.state_code is not PlayerState.BOMB:
         # trying to bomb out of turn or the game has ended
-        return -10
+        return Error.OUT_OF_TURN
     # bomb our opponent, let the other player bomb
     res = int(me.opponent().bomb(x,y))
     me.state_code = PlayerState.WAIT_FOR_BOMB
@@ -215,9 +216,11 @@ def get_plyr_state(pid):
     return players[pid].state_code
 
 def get_game_end(pid):
-    # we go to the pid's game, check if either player has died
-    game = games[players[pid].gid]
+    if pid not in players:
+        return Error.INVALID_PLYR_ID
     me = players[pid]
+    if me.opponent() is None:
+        return Error.NO_OPPONENT
     other = me.opponent()
     null = [[0,0,0,0],
             [0,0,0,0],

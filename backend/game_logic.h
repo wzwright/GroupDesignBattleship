@@ -62,6 +62,10 @@ typedef enum {
 #define ERR_INVALID_PLYR_ID -4
 /** Tried to bomb an invalid position */
 #define ERR_INVALID_BOMB_TARGET -5
+/** Tried to execute an action before opponent joined */
+#define ERR_NO_OPPONENT -6
+/** Tried to execute an action out of turn */
+#define ERR_OUT_OF_TURN -7
 
 static inline const char* error_to_string(int error) {
 	switch(error) {
@@ -71,6 +75,8 @@ static inline const char* error_to_string(int error) {
 	case ERR_INVALID_GRID:        return "Invalid grid";
 	case ERR_INVALID_PLYR_ID:     return "Invalid player ID";
 	case ERR_INVALID_BOMB_TARGET: return "Invalid bomb target";
+	case ERR_NO_OPPONENT:         return "No opponent";
+	case ERR_OUT_OF_TURN:         return "Out of turn";
 	default:                      return "Unknown error";
 	}
 }

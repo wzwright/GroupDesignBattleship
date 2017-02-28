@@ -67,7 +67,7 @@ class ApiTests(unittest.TestCase):
                                             ,[0,1,2,1]
                                             ,[0,2,2,2]
                                             ,[0,3,3,3]
-                                            ,[0,4,4,4]]), b.Error.INVALID_GRID)
+                                            ,[0,4,4,4]]), b.Error.OUT_OF_TURN)
         
 
 
