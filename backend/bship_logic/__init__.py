@@ -1,6 +1,6 @@
-from enum import Enum
+import random, enum
 
-class Error(Enum):
+class Error(enum.Enum):
     NO_SUCH_GAME = -1
     ALREADY_STARTED = -2
     INVALID_GRID = -3
@@ -9,7 +9,7 @@ class Error(Enum):
     NO_OPPONENT = -6
     OUT_OF_TURN = -7
 
-class PlayerState(Enum):
+class PlayerState(enum.Enum):
     WAIT_FOR_JOIN = 0
     SUBMIT_GRID = 1
     WAIT_FOR_SUBMIT = 2
@@ -139,12 +139,12 @@ def valid_grid(grid):
     return (no_overlaps(grid) and correct_lengths(ships, grid))
 
 def new_game():
-    newgid = 0
-    newpid = 0
-    if bool(games):
-        newgid = max(games.keys())+1
-    if bool(players):
-        newpid = max(players.keys())+1
+    newgid = random.randint(0, 2**31 -1)
+    newpid = random.randint(0, 2**31 -1)
+    while newgid in games:
+        newgid = random.randint(0, 2**31 -1)
+    while newpid in players:
+        newpid = random.randint(0, 2**31 -1)
     newgame = Game(newgid)
     games[newgid] = newgame
     players[newpid] = Player(newpid, newgame)
