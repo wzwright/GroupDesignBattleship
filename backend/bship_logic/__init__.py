@@ -54,9 +54,9 @@ class Player:
         # When a player is created, we try to join its associated game
         if (game.pid1 is not None) and (game.pid2 is None):
             # We were the second player. Both players can now submit
-            # their grids. We'll let the other player go first.
+            # their grids.
             game.pid2 = self.pid
-            self.state_code = PlayerState.WAIT_FOR_SUBMIT
+            self.state_code = PlayerState.SUBMIT_GRID
             players[game.pid1].state_code = PlayerState.SUBMIT_GRID
         elif (game.pid1 is None):
             # this means we were the first player, so we should wait
@@ -175,7 +175,6 @@ def submit_grid(pid, grid):
             # else, we are going first, so we'll wait for them and
             # they can now submit
             me.state_code = PlayerState.WAIT_FOR_SUBMIT
-            me.opponent().state_code = PlayerState.SUBMIT_GRID
     except Exception as e:
         print(e)
         # if we get to here, this means there was no opponent, this is
