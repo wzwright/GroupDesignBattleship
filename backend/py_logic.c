@@ -54,6 +54,9 @@ plyr_id bship_logic_join_game(game_id gid) {
 	Py_DECREF(func);
 	if (ret == NULL) {
 		fprintf(stderr, "bship_logic.join_game failed\n");
+		// If this fails, it means I didn't catch an exception in the
+		// Python code. This should never happen: I really do try to
+		// handle all exceptions in Python.
 		return -10;
 	}
 	long res = PyLong_AsLong(ret);
@@ -175,15 +178,29 @@ plyr_state bship_logic_get_plyr_state(plyr_id pid) {
 	return (int)res;
 }
 
-static plyr_id stored_pid = 0;
-static plyr_state stored_state;
-static void* stored_user;
-
 int bship_logic_request_notify(plyr_id pid, plyr_state state, void *user) {
-	if(stored_pid > 0)
-		bship_logic_notification(stored_pid, stored_state, stored_user, 1);
-	stored_pid = pid;
-	stored_state = state;
-	stored_user = user;
-	return 0;
+	py_init();
+	PyObject *func = PyObject_GetAttrString(module, "request_notify");
+	if ((func == NULL) || !PyCallable_Check(func)) {
+		fprintf(stderr, "bship_logic.request_notify not usable\n");
+		exit(1);
+	}
+	PyObject *args = PyTuple_New(3);
+	PyTuple_SetValue(0, Py_BuildValue("i", pid));
+	PyTuple_SetValue(1, Py_BuildValue("i", state));
+	// Note: I use a PyCapsule here instead of casting user to long
+	// long or something since it is technically possible that the
+	// pointer won't fit in a long long.
+	PyTuple_SetValue(2, PyCapsule_New(user, "user data", NULL));
+	PyObject *ret = PyObject_CallObject(func, args);
+	Py_DECREF(func);
+	if (ret == NULL) {
+		fprintf(stderr, "bship_logic.request_notify failed\n");
+		return -10;
+	}
+	long res = PyLong_AsLong(ret);
+	Py_DECREF(ret);
+	return (int)res;
 }
+
+
