@@ -50,8 +50,9 @@ class Player:
         self.set_state(PlayerState.WAIT_FOR_JOIN)
         self.ship_points = None # This is where we keep the positions
                                 # of the points of ships
-        self.bomb_attempts = set() # all bomb attempts including
-                                   # successes and failures
+        self.bomb_history = [] # list of positions we have been bombed
+                               # (including repeats, successes and
+                               # failures)
         self.join(game)
 
     def opponent(self):
@@ -86,15 +87,15 @@ class Player:
         if self.ship_points is None:
             l = [points_occupied(ship) for ship in self.grid]
             self.ship_points = set([item for sublist in l for item in sublist])
-        self.bomb_attempts.add((x,y))
+        self.bomb_history.append((x,y))
         return ((x,y) in self.ship_points)
 
     def dead(self):
-        return self.ship_points.issubset(self.bomb_attempts)
+        return self.ship_points.issubset(set(self.bomb_history))
 
     def set_state(self, state):
         "Changes state and notifies all waiting players"
-        self.set_state(state
+        self.set_state(state)
         other = self.opponent()
         if other is None:
             # there's no-one to notify
@@ -255,10 +256,29 @@ def get_game_end(pid):
         1 if not me.dead() else 0
     )
 
+
+def get_bombed_positions(pid):
+    "Get pid's opponents bombed positions, in order"
+    if pid not in platers:
+        return (Error.INVALID_PLYR_ID, 0, [])
+    # we want where *they* have bombed *us*, which is stored in our
+    # object
+    history = players[pid].bomb_history
+    # need to convert to lists then flatten
+    history = [[x,y] for (x,y) in history]
+    history = [item for item in sublist for sublist in history]
+    return (0, len(history), history)
+
 def request_notify(pid, state, data):
     "Register that pid is waiting for their opponent to enter state"
     if pid not in players:
         return Error.INVALID_PLYR_ID
     me = players[pid]
-    pending_notifications[pid] = (state, data)
+    other = me.opponent()
+    if other is not None and other.state_code is state:
+        # then we notify immediately
+        bship.notification(pid, state, data, 1)
+    else:
+        # else we have to wait for them to notify us
+        pending_notifications[pid] = (state, data)
     return 0
