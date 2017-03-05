@@ -5,8 +5,46 @@
 _Bool initialized = 0;
 PyObject *module = NULL;
 
+// Here, we define the module that allows the Python code to call some
+// C functions (used for bship_logic_notification)
+
+static PyObject *notification(PyObject *self, PyObject *args) {
+	plyr_id id;
+	plyr_state state;
+	void *user_data;
+	PyObject *data_capsule;
+	int succ;
+	_Bool success;
+	if (PyArg_ParseTuple(args, "ii0i", &id, &state, data_capsule, &succ) == NULL) {
+		PyErr_SetString(PyExc_TypeError, "bad argument to bship.notification");
+		return NULL;
+	}
+	success = (succ == 1);
+	user_data = PyCapsule_GetPointer(data_capsule, "user_data");
+	bship_logic_notification(id, state, user_data, success);
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+static PyMethodDef bshipmethods[] = {
+	{"notification", notification, METH_VARARGS,
+	 "Notify a player that another player has entered a state"},
+	{NULL, NULL, 0, NULL}
+};
+static struct PyModuleDef bshipmodule = {
+	PyModuleDef_HEAD_INIT,
+	"bship",
+	NULL, // module documentation
+	-1, // Size of per-interpreter state or -1 if we store everything globally
+	bshipmethods
+};
+	
+PyMODINIT_FUNC PyInit_bship(void) {
+	return PyModule_Create(&bshipmodule);
+}
 void py_init(void) {
 	if(!initialized) {
+		// Add a built-in module we provide
+		PyImport_AppendInittab("bship", PyInit_bship);
 		Py_Initialize();
 		PyObject *module_name = PyUnicode_FromString("bship_logic");
 		PyRun_SimpleString("import sys\nsys.path.append('.')");
@@ -22,7 +60,6 @@ void py_init(void) {
 		initialized = 1;
 	}
 }
-
 
 new_game_result bship_logic_new_game(void){
 	new_game_result r;
@@ -191,7 +228,7 @@ int bship_logic_request_notify(plyr_id pid, plyr_state state, void *user) {
 	// Note: I use a PyCapsule here instead of casting user to long
 	// long or something since it is technically possible that the
 	// pointer won't fit in a long long.
-	PyTuple_SetValue(2, PyCapsule_New(user, "user data", NULL));
+	PyTuple_SetValue(2, PyCapsule_New(user, "user_data", NULL));
 	PyObject *ret = PyObject_CallObject(func, args);
 	Py_DECREF(func);
 	if (ret == NULL) {
