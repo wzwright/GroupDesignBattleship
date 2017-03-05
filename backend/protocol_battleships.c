@@ -77,9 +77,10 @@ static json_t *make_json_rpc_result(json_t *id, json_t *result) {
 #define PARAM_ID json_integer_value(json_array_get(params, 0))
 
 static void handle_request(struct lws *wsi, struct per_session_data__battleships *pss, json_t *request) {
-	int paramN, result, x, y;
+	int paramN, result, x, y, N;
+	int8_t *bombs;
 	char *jsonrpc = "", *method = "";
-	json_t *params = NULL, *id = NULL, *grid_param;
+	json_t *params = NULL, *id = NULL, *grid_param, *bombsJ;
 	json_error_t error;
 	grid grd;
 	ship shp;
@@ -118,6 +119,15 @@ static void handle_request(struct lws *wsi, struct per_session_data__battleships
 		result = bship_logic_submit_grid((plyr_id)PARAM_ID, grd);
 		DIE_ON_ERROR(result);
 		REPLY(json_null());
+	} else if(strcmp(method, "getBombedPositions") == 0) {
+		EXPECT_PARAMS(1);
+		result = bship_logic_get_bombed_positions((plyr_id)PARAM_ID, &N, &bombs);
+		DIE_ON_ERROR(result);
+		bombsJ = json_array();
+		for(x = 0 ; x < N ; x++)
+			json_array_append_new(bombsJ, croaking_json_pack("[ii]", bombs[2 * x], bombs[2 * x + 1]));
+		free(bombs);
+		REPLY(bombsJ);
 	} else if(strcmp(method, "bombPosition") == 0) {
 		EXPECT_PARAMS(3);
 		pid = (plyr_id) PARAM_ID;

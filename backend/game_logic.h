@@ -100,6 +100,14 @@ int bship_logic_submit_grid(plyr_id,grid);
 /** Bombs a position, returning 1 on a hit and 0 on a miss */
 int bship_logic_bomb_position(plyr_id,int,int);
 
+/** Returns the list of positions bombed by this player's opponent,
+ * with N being the number of bombed positions, and bombs being an
+ * array of 2*N coordinates, with the ith bombed position in
+ * chronological order being (bombs[2*i], bombs[2*i+1]). bombs must be
+ * freed by the caller. Returns 0 on success, negative on error.
+ * bombs must be set to NULL on error. */
+int bship_logic_get_bombed_positions(plyr_id,int* N,int8_t** bombs);
+
 /** Returns whether the game is over, and if true also returns the
  * other player's grid and an indication of who won the game */
 get_game_end_result bship_logic_get_game_end(plyr_id);
