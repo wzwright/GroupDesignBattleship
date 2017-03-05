@@ -1,6 +1,13 @@
-import random, enum
+import random, enum, types, sys, importlib
 
-# bship is the module defined in C
+# if bship doesn't exist, we're running it outside the C code, I'll
+# just make a dummy module
+if importlib.find_loader("bship") is None:
+    bship = types.ModuleType("bship")
+    notification = compile("def notification(id, state, data, success): pass", "<string>", "exec")
+    exec(notification, bship.__dict__)
+    sys.modules["bship"] = bship
+
 import bship
 
 class Error(enum.Enum):
@@ -95,7 +102,7 @@ class Player:
 
     def set_state(self, state):
         "Changes state and notifies all waiting players"
-        self.set_state(state)
+        self.state_code = state
         other = self.opponent()
         if other is None:
             # there's no-one to notify

@@ -1,5 +1,5 @@
-import bship_logic as b
 import unittest
+import bship_logic as b
 
 # These are the only "important" tests. Other tests only test internal
 # stuff
