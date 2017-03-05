@@ -15,7 +15,7 @@ static PyObject *notification(PyObject *self, PyObject *args) {
 	PyObject *data_capsule;
 	int succ;
 	_Bool success;
-	if (PyArg_ParseTuple(args, "ii0i", &id, &state, data_capsule, &succ) == NULL) {
+	if (PyArg_ParseTuple(args, "ii0i", &id, &state, &data_capsule, &succ) == 0) {
 		PyErr_SetString(PyExc_TypeError, "bad argument to bship.notification");
 		return NULL;
 	}
@@ -35,7 +35,8 @@ static struct PyModuleDef bshipmodule = {
 	"bship",
 	NULL, // module documentation
 	-1, // Size of per-interpreter state or -1 if we store everything globally
-	bshipmethods
+	bshipmethods,
+	NULL, NULL, NULL, NULL
 };
 	
 PyMODINIT_FUNC PyInit_bship(void) {
@@ -46,6 +47,7 @@ void py_init(void) {
 		// Add a built-in module we provide
 		PyImport_AppendInittab("bship", PyInit_bship);
 		Py_Initialize();
+		PyImport_ImportModule("bship");
 		PyObject *module_name = PyUnicode_FromString("bship_logic");
 		PyRun_SimpleString("import sys\nsys.path.append('.')");
 		module = PyImport_Import(module_name);
@@ -165,7 +167,7 @@ get_game_end_result bship_logic_get_game_end(plyr_id pid) {
 	PyObject *args = Py_BuildValue("(i)", pid);
 	PyObject *ret = PyObject_CallObject(func, args);
 	Py_DECREF(func);
-	if (ret == NULL) {
+	if (ret == NULL || PyLong_Check(ret)) { // If it failed or is an error code
 		fprintf(stderr, "bship_logic.get_game_end failed\n");
 		r.game_over = 0;
 		r.won = 0;
@@ -223,12 +225,12 @@ int bship_logic_request_notify(plyr_id pid, plyr_state state, void *user) {
 		exit(1);
 	}
 	PyObject *args = PyTuple_New(3);
-	PyTuple_SetValue(0, Py_BuildValue("i", pid));
-	PyTuple_SetValue(1, Py_BuildValue("i", state));
-	// Note: I use a PyCapsule here instead of casting user to long
+	PyTuple_SetItem(args, 0, Py_BuildValue("i", pid));
+	PyTuple_SetItem(args, 1, Py_BuildValue("i", state));
+	// Note: I use a PyCapsule here instead of casting void* to long
 	// long or something since it is technically possible that the
 	// pointer won't fit in a long long.
-	PyTuple_SetValue(2, PyCapsule_New(user, "user_data", NULL));
+	PyTuple_SetItem(args, 2, PyCapsule_New(user, "user_data", NULL));
 	PyObject *ret = PyObject_CallObject(func, args);
 	Py_DECREF(func);
 	if (ret == NULL) {
@@ -240,4 +242,36 @@ int bship_logic_request_notify(plyr_id pid, plyr_state state, void *user) {
 	return (int)res;
 }
 
-
+int bship_logic_get_bombed_positions(plyr_id pid, int *N, int8_t **bombs) {
+	py_init();
+	PyObject *func = PyObject_GetAttrString(module, "get_bombed_positions");
+	if ((func == NULL) || !PyCallable_Check(func)) {
+		fprintf(stderr, "bship_logic.get_bombed_positions not usable\n");
+		exit(1);
+	}
+	PyObject *args = Py_BuildValue("(i)", pid);
+	PyObject *ret = PyObject_CallObject(func, args); // (int, int, [int])
+	Py_DECREF(func);
+	if (ret == NULL) {
+		fprintf(stderr, "bship_logic.get_bombed_positions failed\n");
+		return -10;
+	}
+	long res = PyLong_AsLong(PyTuple_GetItem(ret, 0));
+	long retN = PyLong_AsLong(PyTuple_GetItem(ret, 1));
+	PyObject *bomblist = PyTuple_GetItem(ret, 2);
+	int8_t *retbombs;
+	if (res == 0) {
+		retbombs = malloc(2*retN*sizeof(int8_t));
+		int i;
+		for (i = 0; i< (2*retN); i++) {
+			retbombs[i] = (int8_t)PyLong_AsLong(PyList_GetItem(bomblist, i));
+		}
+		*N = retN;
+		*bombs = retbombs;
+	} else {
+		*N = 0;
+		*bombs = NULL;
+	}
+	Py_DECREF(ret);
+	return (int)res;
+}
