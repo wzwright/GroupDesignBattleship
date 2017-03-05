@@ -22,7 +22,7 @@ LDFLAGS += $(shell python3-config --ldflags)
 LDLIBS += $(shell python3-config --libs)
 
 libprotocol_battleships.so: protocol_battleships.o py_logic.o
-	gcc -shared $(LDLIBS) $^ -o $@
+	gcc -shared $^ $(LDLIBS) -o $@
 
 python_c_test:
 	gcc $(CFLAGS) python_c_test.c py_logic.c -o python_c_test $(LDFLAGS) $(LDLIBS)
