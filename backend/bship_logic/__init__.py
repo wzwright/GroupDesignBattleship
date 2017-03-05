@@ -1,5 +1,8 @@
 import random, enum
 
+# bship is the module defined in C
+import bship
+
 class Error(enum.Enum):
     NO_SUCH_GAME = -1
     ALREADY_STARTED = -2
@@ -32,12 +35,19 @@ class Game:
     def full(self):
         return (self.pid1 is not None) and (self.pid2 is not None)
 
+pending_notifications = {} # pid waiting -> (state, data). It is
+                           # implicit that the pid is waiting for
+                           # their opponent
+games = {} # gid -> game
+players = {} # pid -> player
+
+
 class Player:
     def __init__(self, pid, game):
         self.pid = pid
         self.gid = game.gid
         self.grid = None # The "grid" is the set of ships, essentially
-        self.state_code = PlayerState.WAIT_FOR_JOIN
+        self.set_state(PlayerState.WAIT_FOR_JOIN)
         self.ship_points = None # This is where we keep the positions
                                 # of the points of ships
         self.bomb_attempts = set() # all bomb attempts including
@@ -61,13 +71,13 @@ class Player:
             # We were the second player. Both players can now submit
             # their grids.
             game.pid2 = self.pid
-            self.state_code = PlayerState.SUBMIT_GRID
-            players[game.pid1].state_code = PlayerState.SUBMIT_GRID
+            self.set_state(PlayerState.SUBMIT_GRID)
+            players[game.pid1].set_state(PlayerState.SUBMIT_GRID)
         elif (game.pid1 is None):
             # this means we were the first player, so we should wait
             # for the other player
             game.pid1 = self.pid
-            self.state_code = PlayerState.WAIT_FOR_JOIN
+            self.set_state(PlayerState.WAIT_FOR_JOIN)
         else:
             # should never get here
             raise GameFullException
@@ -81,10 +91,20 @@ class Player:
 
     def dead(self):
         return self.ship_points.issubset(self.bomb_attempts)
-            
 
-games = {} # gid -> game
-players = {} # pid -> player
+    def set_state(self, state):
+        "Changes state and notifies all waiting players"
+        self.set_state(state
+        other = self.opponent()
+        if other is None:
+            # there's no-one to notify
+            return None
+        if other.pid not in pending_notifications:
+            # they're not waiting for anything
+            return None
+        (waitstate, waitdata) = pending_notifications[other.pid]
+        if waitstate == state:
+            bship.notification(other.pid, state, waitdata, 1)
 
 def points_occupied(ship):
     x1,y1,x2,y2 = ship
@@ -175,13 +195,13 @@ def submit_grid(pid, grid):
     opponentstate = me.opponent().state_code
     if opponentstate == PlayerState.WAIT_FOR_SUBMIT:
         # if they were waiting for us, tell them to proceed
-        me.opponent().state_code = PlayerState.BOMB
+        me.opponent().set_state(PlayerState.BOMB)
         # we will wait for them to bomb now
-        me.state_code = PlayerState.WAIT_FOR_BOMB
+        me.set_state(PlayerState.WAIT_FOR_BOMB)
     else:
         # if they are not waiting for us, this means they are still
         # submitting, so we should wait for them
-        me.state_code = PlayerState.WAIT_FOR_SUBMIT
+        me.set_state(PlayerState.WAIT_FOR_SUBMIT)
     return 0
 
 def bad_target(x,y):
@@ -201,12 +221,12 @@ def bomb_position(pid, x, y):
         return Error.OUT_OF_TURN
     # bomb our opponent, let the other player bomb
     res = int(me.opponent().bomb(x,y))
-    me.state_code = PlayerState.WAIT_FOR_BOMB
-    me.opponent().state_code = PlayerState.BOMB
+    me.set_state(PlayerState.WAIT_FOR_BOMB)
+    me.opponent().set_state(PlayerState.BOMB)
 
     if me.dead() or me.opponent().dead():
-        me.state_code = PlayerState.GAME_OVER
-        me.opponent().state_code = PlayerState.GAME_OVER
+        me.set_state(PlayerState.GAME_OVER)
+        me.opponent().set_state(PlayerState.GAME_OVER)
 
     return res
 
@@ -219,9 +239,9 @@ def get_game_end(pid):
     if pid not in players:
         return Error.INVALID_PLYR_ID
     me = players[pid]
-    if me.opponent() is None:
-        return Error.NO_OPPONENT
     other = me.opponent()
+    if other is None:
+        return Error.NO_OPPONENT
     null = [[0,0,0,0],
             [0,0,0,0],
             [0,0,0,0],
@@ -234,3 +254,11 @@ def get_game_end(pid):
         1 if over else 0,
         1 if not me.dead() else 0
     )
+
+def request_notify(pid, state, data):
+    "Register that pid is waiting for their opponent to enter state"
+    if pid not in players:
+        return Error.INVALID_PLYR_ID
+    me = players[pid]
+    pending_notifications[pid] = (state, data)
+    return 0
