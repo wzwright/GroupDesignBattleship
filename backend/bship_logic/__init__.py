@@ -44,7 +44,7 @@ class Game:
 
 pending_notifications = {} # pid waiting -> (state, data). It is
                            # implicit that the pid is waiting for
-                           # their opponent
+                           # themselves
 games = {} # gid -> game
 players = {} # pid -> player
 
@@ -103,16 +103,14 @@ class Player:
     def set_state(self, state):
         "Changes state and notifies all waiting players"
         self.state_code = state
-        other = self.opponent()
-        if other is None:
-            # there's no-one to notify
+        if self.pid not in pending_notifications:
+            # we weren't waiting for anything
             return None
-        if other.pid not in pending_notifications:
-            # they're not waiting for anything
-            return None
-        (waitstate, waitdata) = pending_notifications[other.pid]
+        (waitstate, waitdata) = pending_notifications[self.pid]
         if waitstate == state:
-            bship.notification(other.pid, state, waitdata, 1)
+            # if we were waiting for this, notify
+            bship.notification(self.pid, state, waitdata, 1)
+            del pending_notifications[self.pid]
 
 def points_occupied(ship):
     x1,y1,x2,y2 = ship
@@ -281,8 +279,7 @@ def request_notify(pid, state, data):
     if pid not in players:
         return Error.INVALID_PLYR_ID
     me = players[pid]
-    other = me.opponent()
-    if other is not None and other.state_code is state:
+    if me.state_code == state:
         # then we notify immediately
         bship.notification(pid, state, data, 1)
     else:
