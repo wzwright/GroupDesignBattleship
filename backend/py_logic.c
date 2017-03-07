@@ -15,7 +15,8 @@ static PyObject *notification(PyObject *self, PyObject *args) {
 	PyObject *data_capsule;
 	int succ;
 	_Bool success;
-	if (PyArg_ParseTuple(args, "ii0i", &id, &state, &data_capsule, &succ) == 0) {
+	if (!PyArg_ParseTuple(args, "iiOi", &id, &state, &data_capsule, &succ)) {
+		PyErr_Print();
 		PyErr_SetString(PyExc_TypeError, "bad argument to bship.notification");
 		return NULL;
 	}
