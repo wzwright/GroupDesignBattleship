@@ -42,9 +42,9 @@ class Game:
     def full(self):
         return (self.pid1 is not None) and (self.pid2 is not None)
 
-pending_notifications = {} # pid waiting -> (state, data). It is
-                           # implicit that the pid is waiting for
-                           # themselves
+# pid -> list of (state, user_data)
+pending_notifications = {} 
+
 games = {} # gid -> game
 players = {} # pid -> player
 
@@ -106,11 +106,15 @@ class Player:
         if self.pid not in pending_notifications:
             # we weren't waiting for anything
             return None
-        (waitstate, waitdata) = pending_notifications[self.pid]
-        if waitstate == state:
-            # if we were waiting for this, notify
-            bship.notification(self.pid, state, waitdata, 1)
-            del pending_notifications[self.pid]
+        new_notifications = []
+        for (waitstate, waitdata) in pending_notifications[self.pid]:
+            if waitstate == state:
+                # if we were waiting for this, notify
+                bship.notification(self.pid, state, waitdata, 1)
+            else:
+                new_notifications.append((waitstate, waitdata))
+
+        pending_notifications[self.pid] = new_notifications
 
 def points_occupied(ship):
     x1,y1,x2,y2 = ship
@@ -285,6 +289,8 @@ def request_notify(pid, state, data):
         # then we notify immediately
         bship.notification(pid, state, data, 1)
     else:
-        # else we have to wait for them to notify us
-        pending_notifications[pid] = (state, data)
+        if pid in pending_notifications:
+            pending_notifications[pid].append((state, data))
+        else:
+            pending_notifications[pid] = [(state, data)]
     return 0
