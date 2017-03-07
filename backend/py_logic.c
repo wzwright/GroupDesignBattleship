@@ -27,7 +27,7 @@ static PyObject *notification(PyObject *self, PyObject *args) {
 }
 static PyMethodDef bshipmethods[] = {
 	{"notification", notification, METH_VARARGS,
-	 "Notify a player that another player has entered a state"},
+	 "Notify a player that they have entered a state"},
 	{NULL, NULL, 0, NULL}
 };
 static struct PyModuleDef bshipmodule = {
