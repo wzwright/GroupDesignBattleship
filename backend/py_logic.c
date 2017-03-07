@@ -55,7 +55,6 @@ void py_init(void) {
 		if (module == NULL) {
 			if (PyErr_Occurred()) {
 				PyErr_Print();
-				fprintf(stderr, "bship_logic import failed\n");
 			}
 			exit(1);
 		}
@@ -73,11 +72,14 @@ new_game_result bship_logic_new_game(void){
 	}
 	PyObject *ret = PyObject_CallObject(func, NULL);
 	Py_DECREF(func);
+	if (PyErr_Occurred()) {
+		PyErr_Print();
+	}
 	if (ret == NULL) {
 		fprintf(stderr, "bship_logic.new_game failed\n");
 		exit(1);
 	}
-	PyArg_ParseTuple(ret, "ii", &r.pid, &r.gid);
+	PyArg_ParseTuple(ret, "ii", &r.gid, &r.pid);
 	return r;
 }
 
@@ -91,6 +93,9 @@ plyr_id bship_logic_join_game(game_id gid) {
 	PyObject *args = Py_BuildValue("(i)", gid);
 	PyObject *ret = PyObject_CallObject(func, args);
 	Py_DECREF(func);
+	if (PyErr_Occurred()) {
+		PyErr_Print();
+	}
 	if (ret == NULL) {
 		fprintf(stderr, "bship_logic.join_game failed\n");
 		// If this fails, it means I didn't catch an exception in the
@@ -127,6 +132,9 @@ int bship_logic_submit_grid(plyr_id pid, grid _g) {
 	}
 	PyTuple_SetItem(args, 1, py_grid);
 	PyObject *ret = PyObject_CallObject(func, args);
+	if (PyErr_Occurred()) {
+		PyErr_Print();
+	}
 	Py_DECREF(func);
 	if (ret == NULL) {
 		fprintf(stderr, "bship_logic.submit_grid failed\n");
@@ -147,6 +155,9 @@ int bship_logic_bomb_position(plyr_id pid, int x, int y) {
 	PyObject *args = Py_BuildValue("(iii)", pid, x, y);
 	PyObject *ret = PyObject_CallObject(func, args);
 	Py_DECREF(func);
+	if (PyErr_Occurred()) {
+		PyErr_Print();
+	}
 	if (ret == NULL) {
 		fprintf(stderr, "bship_logic.bomb_position failed\n");
 		return ERR_INVALID_BOMB_TARGET;
@@ -167,6 +178,9 @@ get_game_end_result bship_logic_get_game_end(plyr_id pid) {
 	PyObject *args = Py_BuildValue("(i)", pid);
 	PyObject *ret = PyObject_CallObject(func, args);
 	Py_DECREF(func);
+	if (PyErr_Occurred()) {
+		PyErr_Print();
+	}
 	if (ret == NULL || PyLong_Check(ret)) { // If it failed or is an error code
 		fprintf(stderr, "bship_logic.get_game_end failed\n");
 		r.game_over = 0;
@@ -208,6 +222,9 @@ plyr_state bship_logic_get_plyr_state(plyr_id pid) {
 	PyObject *args = Py_BuildValue("(i)", pid);
 	PyObject *ret = PyObject_CallObject(func, args);
 	Py_DECREF(func);
+	if (PyErr_Occurred()) {
+		PyErr_Print();
+	}
 	if (ret == NULL) {
 		fprintf(stderr, "bship_logic.get_plyr_state failed\n");
 		return -10;
@@ -233,6 +250,9 @@ int bship_logic_request_notify(plyr_id pid, plyr_state state, void *user) {
 	PyTuple_SetItem(args, 2, PyCapsule_New(user, "user_data", NULL));
 	PyObject *ret = PyObject_CallObject(func, args);
 	Py_DECREF(func);
+	if (PyErr_Occurred()) {
+		PyErr_Print();
+	}
 	if (ret == NULL) {
 		fprintf(stderr, "bship_logic.request_notify failed\n");
 		return -10;
@@ -252,6 +272,9 @@ int bship_logic_get_bombed_positions(plyr_id pid, int *N, int8_t **bombs) {
 	PyObject *args = Py_BuildValue("(i)", pid);
 	PyObject *ret = PyObject_CallObject(func, args); // (int, int, [int])
 	Py_DECREF(func);
+	if (PyErr_Occurred()) {
+		PyErr_Print();
+	}
 	if (ret == NULL) {
 		fprintf(stderr, "bship_logic.get_bombed_positions failed\n");
 		return -10;
