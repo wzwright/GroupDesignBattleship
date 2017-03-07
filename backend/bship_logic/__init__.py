@@ -10,7 +10,7 @@ if importlib.find_loader("bship") is None:
 
 import bship
 
-class Error(enum.Enum):
+class Error(enum.IntEnum):
     NO_SUCH_GAME = -1
     ALREADY_STARTED = -2
     INVALID_GRID = -3
@@ -19,7 +19,7 @@ class Error(enum.Enum):
     NO_OPPONENT = -6
     OUT_OF_TURN = -7
 
-class PlayerState(enum.Enum):
+class PlayerState(enum.IntEnum):
     WAIT_FOR_JOIN = 0
     SUBMIT_GRID = 1
     WAIT_FOR_SUBMIT = 2
@@ -181,7 +181,9 @@ def join_game(gid):
         return Error.NO_SUCH_GAME
     if games[gid].full():
         return Error.ALREADY_STARTED
-    newpid = max(players.keys())+1
+    newpid = random.randint(0, 2**31-1)
+    while newpid in players:
+        newpid = random.randint(0, 2**31 -1)
     players[newpid] = Player(newpid, games[gid])
     return newpid
 
