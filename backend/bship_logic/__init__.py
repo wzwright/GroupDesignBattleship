@@ -197,7 +197,7 @@ def submit_grid(pid, grid):
     if pid not in players:
         return Error.INVALID_PLYR_ID
     me = players[pid]
-    if (me.grid is not None) or (me.state_code is not PlayerState.SUBMIT_GRID):
+    if (me.grid is not None) or (me.state_code != PlayerState.SUBMIT_GRID):
         # the player has tried to submit a grid twice, or after the
         # game is over
         return Error.OUT_OF_TURN
@@ -230,7 +230,7 @@ def bomb_position(pid, x, y):
         return Error.INVALID_BOMB_TARGET
     if me.opponent() is None:
         return Error.NO_OPPONENT
-    if me.state_code is not PlayerState.BOMB:
+    if me.state_code != PlayerState.BOMB:
         # trying to bomb out of turn or the game has ended
         return Error.OUT_OF_TURN
     # bomb our opponent, let the other player bomb
