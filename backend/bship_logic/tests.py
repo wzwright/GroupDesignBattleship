@@ -36,6 +36,13 @@ class ApiTests(unittest.TestCase):
         # too few ships
         self.assertEqual(b.submit_grid(pid, [[0,0,1,0]
                                             ,[0,1,0,3]]), b.Error.INVALID_GRID)
+        # too many ships
+        self.assertEqual(b.submit_grid(pid, [[0,0,1,0]
+                                            ,[0,1,2,1]
+                                            ,[0,2,2,2]
+                                            ,[0,3,3,3]
+                                            ,[0,4,4,4]
+                                            ,[0,5,4,5]]), b.Error.INVALID_GRID)
         # ships overlap but otherwise valid
         self.assertEqual(b.submit_grid(pid, [[0,0,1,0]
                                             ,[0,0,2,0]
