@@ -5,6 +5,22 @@
 3. Run `make run` to run the server.
 4. Start talking to `ws://localhost:8080/`, e.g. using [telsocket](http://telsocket.org/)
 
+# Testing
+
+![](coverage.png)
+
+Run `make test` to run unit tests. Example of a successful run:
+
+	$ make test
+	test_get_game_end (bship_logic.tests.ApiTests)
+	get_game_end fails when called inappropriately ... ok
+
+	<lots of "... ok">
+
+	Ran 15 tests in 0.002s
+
+	OK
+
 # Command examples
     > Not JSON
     < {"id": null, "error": {"code": -32700, "message": "JSON parse error", "data": "'[' or '{' expected near 'Not'"}, "jsonrpc": "2.0"}
