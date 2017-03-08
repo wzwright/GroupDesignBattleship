@@ -90,10 +90,12 @@ class Player:
             # should never get here
             raise GameFullException
 
+    def set_grid(self, grid):
+        self.grid = grid
+        l = [points_occupied(ship) for ship in self.grid]
+        self.ship_points = set([item for sublist in l for item in sublist])
+
     def bomb(self, x, y):
-        if self.ship_points is None:
-            l = [points_occupied(ship) for ship in self.grid]
-            self.ship_points = set([item for sublist in l for item in sublist])
         self.bomb_history.append((x,y))
         return ((x,y) in self.ship_points)
 
@@ -203,7 +205,7 @@ def submit_grid(pid, grid):
         return Error.NO_OPPONENT
     if not valid_grid(grid):
         return Error.INVALID_GRID
-    me.grid = grid
+    me.set_grid(grid)
     opponentstate = me.opponent().state_code
     if opponentstate == PlayerState.WAIT_FOR_SUBMIT:
         # if they were waiting for us, tell them to proceed

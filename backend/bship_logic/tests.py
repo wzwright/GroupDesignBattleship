@@ -1,8 +1,6 @@
 import unittest
 import bship_logic as b
 
-# These are the only "important" tests. Other tests only test internal
-# stuff
 class ApiTests(unittest.TestCase):
     "Test the behaviour of the public API"
     def setUp(self):
@@ -68,10 +66,56 @@ class ApiTests(unittest.TestCase):
                                             ,[0,2,2,2]
                                             ,[0,3,3,3]
                                             ,[0,4,4,4]]), b.Error.OUT_OF_TURN)
-        
 
 
-        
+class StateTests(unittest.TestCase):
+    "Test that the player's states are correct at all stages of the game"
+    def setUp(self):
+        "Clear the state of the game"
+        b.games = {}
+        b.players = {}
 
+    def test_normal_game(self):
+        "state_codes are correct during a normal game, where one player wins"
+        (gid, pid1) = b.new_game()
+        me = b.players[pid1]
+        self.assertEqual(me.state_code, b.PlayerState.WAIT_FOR_JOIN)
+        pid2 = b.join_game(gid)
+        other = b.players[pid2]
+        self.assertEqual(me.state_code, b.PlayerState.SUBMIT_GRID)
+        self.assertEqual(other.state_code, b.PlayerState.SUBMIT_GRID)
 
-    
+        # they both submit the same grid, for simplicity
+        b.submit_grid(pid1, [[0,0,1,0]
+                            ,[0,1,2,1]
+                            ,[0,2,2,2]
+                            ,[0,3,3,3]
+                            ,[0,4,4,4]])
+        self.assertEqual(me.state_code, b.PlayerState.WAIT_FOR_SUBMIT)
+        b.submit_grid(pid2, [[0,0,1,0]
+                            ,[0,1,2,1]
+                            ,[0,2,2,2]
+                            ,[0,3,3,3]
+                            ,[0,4,4,4]])
+        self.assertEqual(me.state_code, b.PlayerState.BOMB)
+        self.assertEqual(other.state_code, b.PlayerState.WAIT_FOR_BOMB)
+
+        # here, we just play out some turns, with me bombing each of
+        # their ships while they bomb an empty space
+        for ship in other.grid:
+            for (x,y) in b.points_occupied(ship):
+                b.bomb_position(pid1, x, y)
+                b.bomb_position(pid2, 5, 5)
+
+        # game should be over
+        self.assertEqual(me.state_code, b.PlayerState.GAME_OVER)
+        self.assertEqual(other.state_code, b.PlayerState.GAME_OVER)
+
+        # we should have won
+        self.assertEqual(b.get_game_end(pid1), (other.grid, 1, 1))
+
+        # they should have lost
+        self.assertEqual(b.get_game_end(pid2), (me.grid, 1, 0))
+
+    # TODO: add some tests simulating a player trying to do something
+    # weird
