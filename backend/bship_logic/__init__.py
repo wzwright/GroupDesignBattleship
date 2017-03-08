@@ -64,8 +64,8 @@ class Player:
 
     def opponent(self):
         "Finds the other player in this player's game"
-        game = games[self.gid]
         try:
+            game = games[self.gid]
             if game.pid1 == self.pid:
                 return players[game.pid2]
             else:

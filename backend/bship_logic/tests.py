@@ -14,8 +14,8 @@ class ApiTests(unittest.TestCase):
         self.assertTrue(gid in b.games)
         self.assertTrue(pid in b.players)
 
-    def test_join_full(self):
-        "join_game fails when full"
+    def test_join_twice(self):
+        "join_game fails when you try to join twice"
         (gid, pid) = b.new_game()
         b.join_game(gid)
         b.join_game(gid)
@@ -66,6 +66,43 @@ class ApiTests(unittest.TestCase):
                                             ,[0,2,2,2]
                                             ,[0,3,3,3]
                                             ,[0,4,4,4]]), b.Error.OUT_OF_TURN)
+
+class PlayerTests(unittest.TestCase):
+    "Test how player responds to {well,mal}formed environments"
+    def setUp(self):
+        b.players = {}
+        b.games = {}
+
+    def test_join_full(self):
+        "Player.join fails if game is full"
+        # note: this should never happen if the user uses the API
+        # provided. join_game checks and returns an error before the
+        # join call reaches the player.
+        (gid, pid) = b.new_game()
+        b.join_game(gid)
+        with self.assertRaises(b.GameFullException):
+            b.players[pid].join(b.games[gid])
+
+
+    def test_wrong_game_pids(self):
+        "Player.opponent doesn't assume game has correct pids"
+        badgame = b.Game(1234)
+        b.games[1234] = badgame
+        me = b.Player(1, badgame)
+        b.players[1] = me
+        # a hacker (or something) then changes the pids so they refer
+        # to no player
+        badgame.pid1 = 54
+        badgame.pid2 = 256
+        # but the player should not assume the game's pids are correct
+        # (no exceptions should be thrown). This is because we want
+        # the server to be as resilient to hackers as possible: no-one
+        # should be able to provoke an uncaught exception.
+
+        # this is also checking that it's safe to just run
+        # Player.opponent whenever: there is no precondition
+        self.assertEqual(me.opponent(), None)
+
 
 
 class StateTests(unittest.TestCase):
