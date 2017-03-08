@@ -1,5 +1,5 @@
 #!/usr/bin/make -rf
-all: lws install-plugin python_c_test
+all: lws install-plugin
 
 make-datadir:
 	mkdir -p build/datadir
@@ -24,13 +24,9 @@ LDLIBS += $(shell python3-config --libs)
 libprotocol_battleships.so: protocol_battleships.o py_logic.o
 	gcc -shared $^ $(LDLIBS) -o $@
 
-python_c_test:
-	gcc $(CFLAGS) python_c_test.c py_logic.c -o python_c_test $(LDFLAGS) $(LDLIBS)
-
 clean:
 	rm -rf build
 	rm -f protocol_battleships.o py_logic.o libprotocol_battleships.so 
-	rm -f python_c_test
 
 run:
 	build/bin/lwsws -c build/datadir/config
