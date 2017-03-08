@@ -8,6 +8,12 @@ class ApiTests(unittest.TestCase):
         b.games = {}
         b.players = {}
 
+    def test_invalid_pid(self):
+        "All API functions fail correctly if given a bad pid"
+        self.assertEqual(b.get_plyr_state(100), b.Error.INVALID_PLYR_ID)
+        self.assertEqual(b.get_game_end(1000), b.Error.INVALID_PLYR_ID)
+        self.assertEqual(b.request_notify(12, b.PlayerState.SUBMIT_GRID, None), b.Error.INVALID_PLYR_ID)
+
     def test_new_game(self):
         "new_game generates a valid gid and pid"
         (gid, pid) = b.new_game()
@@ -25,6 +31,17 @@ class ApiTests(unittest.TestCase):
         "join_game fails with invalid gid"
         (gid, pid) = b.new_game()
         self.assertEqual(b.join_game(gid+1), b.Error.NO_SUCH_GAME)
+
+    def test_get_plyr_state(self):
+        "get_plyr_state succeeds if pid is valid"
+        (gid, pid) = b.new_game()
+        self.assertEqual(b.get_plyr_state(pid), b.players[pid].state_code)
+
+    def test_get_game_end(self):
+        "get_game_end fails when called inappropriately"
+        # before opponent joins (but we have)
+        (gid, pid) = b.new_game()
+        self.assertEqual(b.get_game_end(pid), b.Error.NO_OPPONENT)
 
     def test_submit_invalid(self):
         "submit_grid fails with some bad grids, pids"
