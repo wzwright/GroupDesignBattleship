@@ -44,9 +44,16 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(b.get_game_end(pid), b.Error.NO_OPPONENT)
 
     def test_submit_invalid(self):
-        "submit_grid fails with some bad grids, pids"
+        "submit_grid fails with bad grids, when called too early"
         # game starts, other player joins, we place first
         (gid, pid) = b.new_game()
+
+        # submit before join
+        self.assertEqual(b.submit_grid(pid, [[0,0,1,0]
+                                            ,[0,1,2,1]
+                                            ,[0,2,2,2]
+                                            ,[0,3,3,3]
+                                            ,[0,4,4,4]]), b.Error.NO_OPPONENT)
         otherpid = b.join_game(gid)
         # empty grid
         self.assertEqual(b.submit_grid(pid, []), b.Error.INVALID_GRID)
@@ -226,3 +233,59 @@ class StateTests(unittest.TestCase):
 
     # TODO: add some tests simulating a player trying to do something
     # weird
+
+class BombTests(unittest.TestCase):
+    "Test that bomb history and bomb errors are correct"
+    def setUp(self):
+        b.players = {}
+        b.games = {}
+
+    def test_bomb_pos_invalid(self):
+        "bomb_position fails with bad arguments or if called too early"
+        # bad pid
+        self.assertEqual(b.bomb_position(123,0,0), b.Error.INVALID_PLYR_ID)
+        (gid, pid1) = b.new_game()
+        # before opponent joins
+        self.assertEqual(b.bomb_position(pid1,0,0), b.Error.NO_OPPONENT)
+        pid2 = b.join_game(gid)
+        # before the bombing phase starts
+        self.assertEqual(b.bomb_position(pid1,0,0), b.Error.OUT_OF_TURN)
+        # players submit grid
+        b.submit_grid(pid1, [[0,0,1,0]
+                             ,[0,1,2,1]
+                             ,[0,2,2,2]
+                             ,[0,3,3,3]
+                             ,[0,4,4,4]])
+        b.submit_grid(pid2, [[0,0,1,0]
+                             ,[0,1,2,1]
+                             ,[0,2,2,2]
+                             ,[0,3,3,3]
+                             ,[0,4,4,4]])
+        # bad position
+        self.assertEqual(b.bomb_position(pid1,100,100), b.Error.INVALID_BOMB_TARGET)
+        # this should work and hit
+        self.assertEqual(b.bomb_position(pid1,0,0), 1)
+
+    def test_bomb_history(self):
+        "get_bomb_history fails with bad args but is correct otherwise"
+        self.assertEqual(b.get_bombed_positions(123), (b.Error.INVALID_PLYR_ID, 0, []))
+        (gid, pid1) = b.new_game()
+        pid2 = b.join_game(gid)
+        b.submit_grid(pid1, [[0,0,1,0]
+                             ,[0,1,2,1]
+                             ,[0,2,2,2]
+                             ,[0,3,3,3]
+                             ,[0,4,4,4]])
+        b.submit_grid(pid2, [[0,0,1,0]
+                             ,[0,1,2,1]
+                             ,[0,2,2,2]
+                             ,[0,3,3,3]
+                             ,[0,4,4,4]])
+        b.bomb_position(pid1, 0, 0)
+        b.bomb_position(pid2, 0, 4)
+        b.bomb_position(pid1, 0, 1)
+
+        self.assertEqual(b.get_bombed_positions(pid1), (0, 1, [0,4]))
+        self.assertEqual(b.get_bombed_positions(pid2), (0, 2, [0,0,0,1]))
+
+

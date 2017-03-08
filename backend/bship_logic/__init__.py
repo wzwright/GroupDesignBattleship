@@ -197,12 +197,12 @@ def submit_grid(pid, grid):
     if pid not in players:
         return Error.INVALID_PLYR_ID
     me = players[pid]
+    if me.opponent() is None:
+        return Error.NO_OPPONENT
     if (me.grid is not None) or (me.state_code != PlayerState.SUBMIT_GRID):
         # the player has tried to submit a grid twice, or after the
         # game is over
         return Error.OUT_OF_TURN
-    if me.opponent() is None:
-        return Error.NO_OPPONENT
     if not valid_grid(grid):
         return Error.INVALID_GRID
     me.set_grid(grid)
@@ -279,8 +279,9 @@ def get_bombed_positions(pid):
     history = players[pid].bomb_history
     # need to convert to lists then flatten
     history = [[x,y] for (x,y) in history]
-    history = [item for item in sublist for sublist in history]
-    return (0, len(history), history)
+    l = len(history)
+    history = [item for sublist in history for item in sublist]
+    return (0, l, history)
 
 def request_notify(pid, state, data):
     "Register that pid is waiting for their opponent to enter state"
