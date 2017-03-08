@@ -103,7 +103,53 @@ class PlayerTests(unittest.TestCase):
         # Player.opponent whenever: there is no precondition
         self.assertEqual(me.opponent(), None)
 
+class NotificationTests(unittest.TestCase):
+    "Test that notifications 'block' correctly"
+    # the notification system is inherently tied to the C code, so
+    # to test it we have to assume that if the notification is
+    # pending one second then gone the next, it was replied to by
+    # the C code, so everything is fine.
+    def setUp(self):
+        b.players = {}
+        b.games = {}
 
+    def test_notify_delayed_join(self):
+        "Player gets notified when other player joins after some time"
+        (gid, pid) = b.new_game()
+        b.request_notify(pid, b.PlayerState.SUBMIT_GRID, None)
+        # notification has been registered as waiting
+        self.assertTrue(pid in b.pending_notifications and (b.PlayerState.SUBMIT_GRID, None) in b.pending_notifications[pid])
+        b.join_game(gid)
+        # now the notification should be gone. As per above, we assume
+        # it was responded to
+        self.assertFalse(pid in b.pending_notifications and (b.PlayerState.SUBMIT_GRID, None) in b.pending_notifications[pid])
+
+    def test_notify_immediate_join(self):
+        "Player gets notified immediately when other player is already in game"
+        (gid, pid) = b.new_game()
+        b.join_game(gid)
+        b.request_notify(pid, b.PlayerState.SUBMIT_GRID, None)
+        # the notification should never have been registered at all
+        self.assertFalse(pid in b.pending_notifications and (b.PlayerState.SUBMIT_GRID, None) in b.pending_notifications[pid])
+
+    def test_multiple_notifications(self):
+        "Player waiting for multiple states is notified correctly"
+        (gid, pid) = b.new_game()
+        # we wait for the same thing twice: both should be responded
+        # to at the same time
+        b.request_notify(pid, b.PlayerState.SUBMIT_GRID, None)
+        b.request_notify(pid, b.PlayerState.SUBMIT_GRID, None)
+        self.assertTrue(pid in b.pending_notifications)
+        self.assertEqual(2, b.pending_notifications[pid].count((b.PlayerState.SUBMIT_GRID, None)))
+        # we also wait for something else: this should not be
+        # responded to at the same time as the others
+        b.request_notify(pid, b.PlayerState.BOMB, None)
+        self.assertTrue((b.PlayerState.BOMB, None) in b.pending_notifications[pid])
+        b.join_game(gid)
+        # wait for join notifications should be gone
+        self.assertFalse(pid in b.pending_notifications and (b.PlayerState.SUBMIT_GRID, None) in b.pending_notifications[pid])
+        # bomb notifications should still be here
+        self.assertTrue((b.PlayerState.BOMB, None) in b.pending_notifications[pid])
 
 class StateTests(unittest.TestCase):
     "Test that the player's states are correct at all stages of the game"
@@ -124,16 +170,16 @@ class StateTests(unittest.TestCase):
 
         # they both submit the same grid, for simplicity
         b.submit_grid(pid1, [[0,0,1,0]
-                            ,[0,1,2,1]
-                            ,[0,2,2,2]
-                            ,[0,3,3,3]
-                            ,[0,4,4,4]])
+                             ,[0,1,2,1]
+                             ,[0,2,2,2]
+                             ,[0,3,3,3]
+                             ,[0,4,4,4]])
         self.assertEqual(me.state_code, b.PlayerState.WAIT_FOR_SUBMIT)
         b.submit_grid(pid2, [[0,0,1,0]
-                            ,[0,1,2,1]
-                            ,[0,2,2,2]
-                            ,[0,3,3,3]
-                            ,[0,4,4,4]])
+                             ,[0,1,2,1]
+                             ,[0,2,2,2]
+                             ,[0,3,3,3]
+                             ,[0,4,4,4]])
         self.assertEqual(me.state_code, b.PlayerState.BOMB)
         self.assertEqual(other.state_code, b.PlayerState.WAIT_FOR_BOMB)
 
