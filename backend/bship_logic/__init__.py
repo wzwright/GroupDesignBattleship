@@ -272,7 +272,7 @@ def get_game_end(pid):
 
 def get_bombed_positions(pid):
     "Get pid's opponents bombed positions, in order"
-    if pid not in platers:
+    if pid not in players:
         return (Error.INVALID_PLYR_ID, 0, [])
     # we want where *they* have bombed *us*, which is stored in our
     # object
