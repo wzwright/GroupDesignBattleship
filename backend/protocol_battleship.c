@@ -1,3 +1,4 @@
+#include <Python.h>
 #include <assert.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -13,7 +14,10 @@
 #define LWS_DLL
 #include <jansson.h>
 #include "libwebsockets/lib/libwebsockets.h"
+
+#define BSHIP_LOGIC
 #include "game_logic.h"
+#include "bship_logic.h"
 
 struct per_session_data__battleship {
 	json_t *pending_replies[100];
@@ -285,10 +289,14 @@ init_protocol_battleship(struct lws_context *context, struct lws_plugin_capabili
 	c->count_protocols = 1;
 	c->extensions = NULL;
 	c->count_extensions = 0;
+	// Initialize the Python interpreter and the bship_logic module
+	Py_Initialize();
+	PyInit_bship_logic();
 	return 0;
 }
 
 LWS_VISIBLE int
 destroy_protocol_battleship(struct lws_context *context) {
+	Py_Finalize();
 	return 0;
 }
