@@ -15,18 +15,18 @@
 #include "libwebsockets/lib/libwebsockets.h"
 #include "game_logic.h"
 
-struct per_session_data__battleships {
+struct per_session_data__battleship {
 	json_t *pending_replies[100];
 	int pending_replies_count;
 };
 
 struct notification_user_data {
 	struct lws *wsi;
-	struct per_session_data__battleships *pss;
+	struct per_session_data__battleship *pss;
 	json_t *id;
 };
 
-/* Set of [struct per_session_data__battleships*] that are valid.
+/* Set of [struct per_session_data__battleship*] that are valid.
  * A pointer is inserted here when a connection is established, and
  * removed when a connection is closed. This is used when a
  * notification comes in to enable us to ignore notifications coming
@@ -50,7 +50,7 @@ static json_t *croaking_json_pack(const char* fmt, ...) {
 	return result;
 }
 
-static void send_json_rpc(struct lws *wsi, struct per_session_data__battleships *pss, json_t *payload) {
+static void send_json_rpc(struct lws *wsi, struct per_session_data__battleship *pss, json_t *payload) {
 	assert(payload != NULL);
 	assert(json_object_set_new(payload, "jsonrpc", json_string("2.0")) == 0);
 	pss->pending_replies[pss->pending_replies_count++] = payload;
@@ -76,7 +76,7 @@ static json_t *make_json_rpc_result(json_t *id, json_t *result) {
 
 #define PARAM_ID json_integer_value(json_array_get(params, 0))
 
-static void handle_request(struct lws *wsi, struct per_session_data__battleships *pss, json_t *request) {
+static void handle_request(struct lws *wsi, struct per_session_data__battleship *pss, json_t *request) {
 	int paramN, result, x, y, N;
 	int8_t *bombs;
 	char *jsonrpc = "", *method = "";
@@ -179,8 +179,8 @@ static void handle_request(struct lws *wsi, struct per_session_data__battleships
 }
 
 static int callback_bship(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len) {
-	struct per_session_data__battleships *pss =
-		(struct per_session_data__battleships *) user;
+	struct per_session_data__battleship *pss =
+		(struct per_session_data__battleship *) user;
 	char buf[LWS_PRE + 1024];
 	char *p = &buf[LWS_PRE], *q;
 	int i, m, n;
@@ -190,7 +190,7 @@ static int callback_bship(struct lws *wsi, enum lws_callback_reasons reason, voi
 
 	switch(reason) {
 	case LWS_CALLBACK_PROTOCOL_INIT:
-		lwsl_notice("Initialized battleships for a vhost");
+		lwsl_notice("Initialized battleship for a vhost");
 		break;
 
 	case LWS_CALLBACK_ESTABLISHED:
@@ -250,7 +250,7 @@ static int callback_bship(struct lws *wsi, enum lws_callback_reasons reason, voi
 void bship_logic_notification(plyr_id pid, plyr_state state, void *user, _Bool success) {
 	struct notification_user_data *notify_data = (struct notification_user_data*) user;
 	struct lws *wsi = notify_data->wsi;
-	struct per_session_data__battleships *pss = notify_data->pss;
+	struct per_session_data__battleship *pss = notify_data->pss;
 	json_t *id = notify_data->id;
 
 	if(stb_ps_find(valid_pss, pss)) { /* Connection still alive */
@@ -266,15 +266,15 @@ void bship_logic_notification(plyr_id pid, plyr_state state, void *user, _Bool s
 
 static const struct lws_protocols protocols[] = {
 	{
-		"battleships-protocol",
+		"battleship-protocol",
 		callback_bship,
-		(sizeof (struct per_session_data__battleships)),
+		(sizeof (struct per_session_data__battleship)),
 		1024,
 	},
 };
 
 LWS_VISIBLE int
-init_protocol_battleships(struct lws_context *context, struct lws_plugin_capability *c) {
+init_protocol_battleship(struct lws_context *context, struct lws_plugin_capability *c) {
 	if (c->api_magic != LWS_PLUGIN_API_MAGIC) {
 		lwsl_err("Plugin API %d, library API %d", LWS_PLUGIN_API_MAGIC,
 			 c->api_magic);
@@ -289,6 +289,6 @@ init_protocol_battleships(struct lws_context *context, struct lws_plugin_capabil
 }
 
 LWS_VISIBLE int
-destroy_protocol_battleships(struct lws_context *context) {
+destroy_protocol_battleship(struct lws_context *context) {
 	return 0;
 }

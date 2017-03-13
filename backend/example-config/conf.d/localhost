@@ -3,7 +3,7 @@
 		"name": "localhost",
 		"port": "8080",
 		"ws-protocols": [{
-			"battleships-protocol": {
+			"battleship-protocol": {
 				"status": "ok",
 				"default": 1
 			}
