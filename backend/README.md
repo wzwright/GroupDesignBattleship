@@ -66,3 +66,11 @@ Run `make test` to run unit tests. Example of a successful run:
 
     > {"jsonrpc": "2.0", "method": "getGameEnd", "id": 444, "params":[7]}
     < {"id": 444, "result": {"game_over": false, "won": false, "grid": null}, "jsonrpc": "2.0"}
+
+    > [{"jsonrpc": "2.0", "method": "newGame", "id": 50}, {"aa":"b"}]
+    < {"id": null, "error": {"code": -32600, "message": "Invalid Request", "data": "Object item not found: jsonrpc"}}
+    < {"id": 50, "result": [1269802784, 670415459]}
+
+Note the last example is not standards-compliant. The backend replies
+to a K-element batch request by sending K independent responses
+instead of a K-element array of responses.

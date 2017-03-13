@@ -184,8 +184,9 @@ static int callback_bship(struct lws *wsi, enum lws_callback_reasons reason, voi
 	char buf[LWS_PRE + 1024];
 	char *p = &buf[LWS_PRE], *q;
 	int i, m, n;
-	json_t *request;
+	json_t *request, *tmp;
 	json_error_t error;
+	size_t idx;
 
 	switch(reason) {
 	case LWS_CALLBACK_PROTOCOL_INIT:
@@ -232,7 +233,12 @@ static int callback_bship(struct lws *wsi, enum lws_callback_reasons reason, voi
 			return 0;
 		}
 
-		handle_request(wsi, pss, request);
+		if(json_is_array(request)) { /* Batch request */
+			json_array_foreach(request, idx, tmp) {
+				handle_request(wsi, pss, tmp);
+			}
+		} else
+			handle_request(wsi, pss, request);
 		json_decref(request);
 		break;
 	default:
