@@ -7,6 +7,8 @@
 typedef int game_id;
 typedef int plyr_id;
 
+#ifndef BSHIP_LOGIC /* These structs are defined again by Cython in
+					 * the bship_logic module */
 /** Represents a ship by its start and end coordinates.
  * Invariant: x1 <= x2 && y1 <= y2. */
 typedef struct {
@@ -33,6 +35,8 @@ typedef struct {
 	_Bool won;
 } get_game_end_result;
 
+#endif /* BSHIP_LOGIC */
+
 /** The state of the game, from the perspective of a player */
 typedef enum {
 	/** Waiting for another player to join my game */
@@ -48,6 +52,7 @@ typedef enum {
 	/** Someone won the game */
 	GAME_OVER
 } plyr_state;
+
 
 /*** ERRORS ***/
 /* All errors are guaranteed to be negative */
@@ -81,6 +86,8 @@ static inline const char* error_to_string(int error) {
 	}
 }
 
+#ifndef BSHIP_LOGIC /* These functions are defined again by Cython in
+					 * the bship_logic module */
 /*** FUNCTIONS ***/
 /* All functions with an integer result type return an error value in
  * case of error */
@@ -133,5 +140,6 @@ int bship_logic_request_notify(plyr_id, plyr_state, void *user_data);
  * [success]is true if the player entered the state, and false if the
  * notification timed out. */
 void bship_logic_notification(plyr_id, plyr_state, void *user_data, _Bool success);
+#endif /* BSHIP_LOGIC */
 
 #endif /* GAME_LOGIC_H */
