@@ -13,6 +13,7 @@ install-plugin: make-datadir libprotocol_battleship.so
 	install -d build/datadir/share/libwebsockets-test-server/plugins
 	install libprotocol_battleship.so build/datadir/share/libwebsockets-test-server/plugins/
 
+CC=gcc
 CFLAGS += -fPIC
 CFLAGS += -ggdb3
 CFLAGS += -Ibuild/
@@ -21,12 +22,18 @@ CFLAGS += $(shell python3-config --cflags)
 LDFLAGS += $(shell python3-config --ldflags)
 LDLIBS += $(shell python3-config --libs)
 
-libprotocol_battleship.so: protocol_battleship.o py_logic.o
-	gcc -shared $^ $(LDLIBS) -o $@
+bship_logic.c bship_logic.h: bship_logic.pyx
+	cython bship_logic.pyx -o bship_logic.c
+
+bship_logic.o: bship_logic.c
+	$(CC) -c bship_logic.c $(CFLAGS) $(LDFLAGS) $(LDLIBS) -o $@
+
+libprotocol_battleship.so: protocol_battleship.o bship_logic.o
+	$(CC) -shared $^ $(LDLIBS) -o $@
 
 clean:
 	rm -rf build
-	rm -f protocol_battleship.o py_logic.o libprotocol_battleship.so 
+	rm -f protocol_battleship.o libprotocol_battleship.so bship_logic.o bship_logic.c bship_logic.h
 
 run:
 	build/bin/lwsws -c build/datadir/config
