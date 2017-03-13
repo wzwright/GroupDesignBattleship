@@ -185,7 +185,7 @@ def bad_target(x,y):
     # It's probably fine to hardcode the board size
     return (x not in range(10)) or (y not in range(10))
 
-## C API starts here
+# C API starts here
 
 cdef public new_game_result bship_logic_new_game():
     newgid = random.randint(0, 2**31 -1)
@@ -202,6 +202,13 @@ cdef public new_game_result bship_logic_new_game():
     res.pid = newpid
     return res
 
+# After each C function, we add a Python version that we can use for
+# non-Cython unit testing
+def new_game():
+    cdef new_game_result res
+    res = bship_logic_new_game()
+    return (res.gid, res.pid)
+
 cdef public int bship_logic_join_game(int gid):
     if gid not in games:
         return Error.NO_SUCH_GAME
@@ -212,6 +219,9 @@ cdef public int bship_logic_join_game(int gid):
         newpid = random.randint(0, 2**31 -1)
     players[newpid] = Player(newpid, games[gid])
     return newpid
+
+def join_game(gid):
+    return bship_logic_join_game(gid)
 
 def grid_to_python(grid grid):
     pygrid = []
@@ -260,6 +270,9 @@ cdef public int bship_logic_submit_grid(int pid, grid rgrid):
         me.set_state(PlayerState.WAIT_FOR_SUBMIT)
     return 0
 
+def submit_grid(pid, grid):
+    return bship_logic_submit_grid(pid, python_to_grid(grid))
+
 cdef public int bship_logic_bomb_position(int pid, int x, int y):
     if pid not in players:
         return Error.INVALID_PLYR_ID
@@ -282,10 +295,16 @@ cdef public int bship_logic_bomb_position(int pid, int x, int y):
 
     return res
 
+def bomb_position(pid, x, y):
+    return bship_logic_bomb_position(pid, x, y)
+
 cdef public int bship_logic_get_plyr_state(int pid):
     if pid not in players:
         return Error.INVALID_PLYR_ID
     return players[pid].state_code
+
+def get_plyr_state(pid):
+    return bship_logic_get_plyr_state(pid)
 
 cdef public get_game_end_result bship_logic_get_game_end(int pid):
     cdef get_game_end_result res
@@ -311,11 +330,24 @@ cdef public get_game_end_result bship_logic_get_game_end(int pid):
     res.won = not me.dead()
     return res
 
+def get_game_end(pid):
+    cdef get_game_end_result res
+    res = bship_logic_get_game_end(pid)
+    return (grid_to_python(res.grid),
+            res.game_over,
+            res.won)
+
 cdef public int8_t* python_to_array(li, n):
     cdef int8_t* res
     res = <int8_t*>malloc(n*cython.sizeof(int))
     for i in range(n):
         res[i] = li[i]
+    return res
+
+def array_to_python(int8_t* arr, int n):
+    res = []
+    for i in range(n):
+        res.append(arr[i])
     return res
 
 cdef public int bship_logic_get_bombed_positions(int pid, int* N, int8_t** bombs):
@@ -335,9 +367,16 @@ cdef public int bship_logic_get_bombed_positions(int pid, int* N, int8_t** bombs
     bombs[0] = python_to_array(history, 2*l)
     return 0
 
+def get_bombed_positions(pid):
+    cdef int N
+    cdef int8_t* bombs
+    res = bship_logic_get_bombed_positions(pid, &N, &bombs)
+    return (res, N, array_to_python(bombs, 2*N))
+    
+
 def notification(pid, state, data_capsule, success):
     bship_logic_notification(pid, state, cpython.PyCapsule_GetPointer(data_capsule, "user_data"), success)
-    
+        
 
 cdef public int bship_logic_request_notify(int pid, int state, void* rdata):
     "Register that pid is waiting for their opponent to enter state"
@@ -354,3 +393,10 @@ cdef public int bship_logic_request_notify(int pid, int state, void* rdata):
         else:
             pending_notifications[pid] = [(state, data)]
     return 0
+
+def request_notify(pid, state, data_capsule):
+    # Note: the unit tests never actually pass in anything as a
+    # data_capsule, this is solely a websockets thing, the unit tests
+    # don't need to care about it
+    return bship_logic_request_notify(pid, state, NULL)
+    
