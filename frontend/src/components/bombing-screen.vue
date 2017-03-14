@@ -90,15 +90,12 @@ export default {
       this.bombTarget = []
       this.$store.dispatch('waitForYourTurn', {
         okCallback: () => {
-          console.log('getting game end');
           this.$store.dispatch('getGameEnd', {
             okCallback: ({ gameOver, won }) => {
-              console.log(`go: ${gameOver}`);
               if (gameOver) {
                 this.won = won
                 this.phase = 'gameOver'
               } else {
-                console.log('getting bomb positions');
                 this.$store.dispatch('getBombedPositions', {
                   okCallback: () => {
                     this.phase = 'bomb'
