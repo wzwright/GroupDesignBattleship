@@ -1,8 +1,8 @@
 <template>
-  <div>
+  <div id="bombingScreen">
     <div class="shipContainer">
       <p>Opponent's ships</p>
-      <opponentCanvas
+      <opponentCanvas class="bombingCanvas"
          v-on:keyup.enter.native="bombSubmit"
          v-bind:bombsOK="bombsOK"
          v-bind:bombsFailed="bombsFailed"
@@ -10,21 +10,25 @@
          v-on:gridClicked="bombSelect"
       ></opponentCanvas>
       <button
-        v-if="phase === 'bomb'"
+        v-show="phase === 'bomb'"
         v-on:click="bombSubmit"
       >Bomb!</button>
     </div>
-    <div class="shipContainer">
+    <div class="shipContainer playerShipContainer">
       <p>Your ships</p>
-      <playerCanvas
+      <playerCanvas class="bombingCanvas"
          v-bind:ships="playerShips"
          v-bind:bombsOK="playerBombs"
       ></playerCanvas>
     </div>
-    <p v-if="phase === 'bomb'">Click on a place on your opponent's board and click 'bomb' to bomb them!</p>
-    <p v-if="phase === 'wait'">Wait for your opponent to make a move.</p>
-    <p v-if="phase === 'gameOver' && won">You win!</p>
-    <p v-if="phase === 'gameOver' && !won">You lose!</p>
+
+    <div class="message">
+      <p v-if="phase === 'bomb'">Click on a place on your opponent's board and click 'bomb' to bomb them!</p>
+      <p v-if="phase === 'bomb'">Red means a successful attack, blue means you missed.</p>
+      <p v-if="phase === 'wait'">Waiting for your opponent to make a move.</p>
+      <p v-if="phase === 'gameOver' && won">You win!</p>
+      <p v-if="phase === 'gameOver' && !won">You lose!</p>
+    </div>
   </div>
 </template>
 
@@ -112,18 +116,41 @@ export default {
 </script>
 
 <style lang="scss">
+$border: 2px;
+
+#bombingScreen {
+  text-align: center;
+}
+
 .shipContainer {
   display: inline-flex;
   flex-direction: column;
-  margin-top: 1em;
+  margin: 1em 3em;
 
   button {
     display: block;
+    width: 100%;
+    font-size: 1.3em;
+    padding: 0.5em;
     margin: 1em auto;
+    border-width: $border;
   }
 
   p {
+    margin: 1em;
     text-align: center;
   }
+}
+
+.message {
+  text-align: center;
+
+  p {
+    margin: 0.5em auto;
+  }
+}
+
+.playerShipContainer {
+  padding-bottom: 6em;
 }
 </style>

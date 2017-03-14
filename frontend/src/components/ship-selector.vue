@@ -9,7 +9,7 @@
       <button v-on:click="setActiveRotation()">rotate</button>
       <button id="submit" v-on:click="submitGrid">Submit</button>
     </div>
-    <shipCanvas
+    <shipCanvas id="ship-canvas"
       v-on:gridClicked="selectShip"
       v-bind:ships="ships"
       v-bind:bombs="bombs"
@@ -93,5 +93,13 @@ export default {
     width: 100%;
     margin: 3px auto;
   }
+}
+
+#ship-canvas {
+  /*
+   * using margin rather than padding is important
+   * since 'getBoundingClientRect' is affected
+   */
+  margin: 20px;
 }
 </style>

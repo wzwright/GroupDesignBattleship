@@ -27,5 +27,7 @@ export default {
 html, body {
   padding: 0;
   margin: 0;
+
+  font-family: 'Roboto', 'Helvetica Neue', 'Calibri Light', sans-serif;
 }
 </style>

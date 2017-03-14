@@ -158,11 +158,4 @@ export default {
 </script>
 
 <style lang="scss">
-canvas {
-  /*
-   * using margin rather than padding is important
-   * since 'getBoundingClientRect' is affected
-   */
-  margin: 20px;
-}
 </style>
