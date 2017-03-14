@@ -94,18 +94,18 @@ export default {
       this.bombTarget = []
       this.$store.dispatch('waitForYourTurn', {
         okCallback: () => {
-          this.$store.dispatch('getGameEnd', {
-            okCallback: ({ gameOver, won }) => {
-              if (gameOver) {
-                this.won = won
-                this.phase = 'gameOver'
-              } else {
-                this.$store.dispatch('getBombedPositions', {
-                  okCallback: () => {
+          this.$store.dispatch('getBombedPositions', {
+            okCallback: () => {
+              this.$store.dispatch('getGameEnd', {
+                okCallback: ({ gameOver, won }) => {
+                  if (gameOver) {
+                    this.won = won
+                    this.phase = 'gameOver'
+                  } else {
                     this.phase = 'bomb'
-                  },
-                })
-              }
+                  }
+                },
+              })
             },
           })
         },
@@ -116,8 +116,6 @@ export default {
 </script>
 
 <style lang="scss">
-$border: 2px;
-
 #bombingScreen {
   text-align: center;
 }
@@ -133,7 +131,6 @@ $border: 2px;
     font-size: 1.3em;
     padding: 0.5em;
     margin: 1em auto;
-    border-width: $border;
   }
 
   p {
