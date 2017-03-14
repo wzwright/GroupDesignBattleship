@@ -26,15 +26,12 @@ LDLIBS += $(shell python3-config --libs)
 bship_logic.c bship_logic.h: bship_logic.pyx
 	cython bship_logic.pyx -o bship_logic.c
 
-bship_logic.o: protocol_battleship.o bship_logic.c
-	$(CC) -c bship_logic.c $(CFLAGS) $(LDFLAGS) $(LDLIBS) -o bship_logic.o
-
 # This shared object is used by the unit tests (it's a loadable Python
 # module)
 bship_logic.so: bship_logic.c
 	$(CC) -shared bship_logic.c dummy_functions.c $(LDLIBS) $(CFLAGS) $(LDFLAGS) -o bship_logic.so
 
-libprotocol_battleship.so: protocol_battleship.o bship_logic.o
+libprotocol_battleship.so: bship_logic.o protocol_battleship.o 
 	$(CC) -shared $^ $(LDLIBS) -o $@
 
 clean:

@@ -79,8 +79,10 @@ class Player:
             game = games[self.gid]
             if game.pid1 == self.pid:
                 return players[game.pid2]
-            else:
+            elif game.pid2 == self.pid:
                 return players[game.pid1]
+            else:
+                return None
         except KeyError:
             return None
 
@@ -223,18 +225,19 @@ cdef public int bship_logic_join_game(int gid):
 def join_game(gid):
     return bship_logic_join_game(gid)
 
-def grid_to_python(grid grid):
+cdef grid_to_python(grid grid):
     pygrid = []
+    cdef ship ship
     for i in range(5):
         ship = grid.s[i]
         pygrid.append([ship.x1, ship.y1, ship.x2, ship.y2])
     return pygrid
 
-cdef public grid python_to_grid(pygrid):
+cdef grid python_to_grid(pygrid):
     cdef grid grid
     cdef ship[5] newships
     cdef ship ship
-    for i in range(5):
+    for i in range(min(5, len(pygrid))):
         [x1, y1, x2, y2] = pygrid[i]
         ship.x1 = x1
         ship.y1 = y1
@@ -317,7 +320,9 @@ cdef public get_game_end_result bship_logic_get_game_end(int pid):
     me = players[pid]
     other = me.opponent()
     if other is None:
-        return Error.NO_OPPONENT
+        res.game_over = False
+        res.won = False
+        return res
     null = [[0,0,0,0],
             [0,0,0,0],
             [0,0,0,0],
@@ -337,21 +342,21 @@ def get_game_end(pid):
             res.game_over,
             res.won)
 
-cdef public int8_t* python_to_array(li, n):
+cdef int8_t* python_to_array(li, n):
     cdef int8_t* res
-    res = <int8_t*>malloc(n*cython.sizeof(int))
+    res = <int8_t*>malloc(n*cython.sizeof(int8_t))
     for i in range(n):
         res[i] = li[i]
     return res
 
-def array_to_python(int8_t* arr, int n):
+cdef array_to_python(int8_t* arr, int n):
     res = []
     for i in range(n):
         res.append(arr[i])
     return res
 
 cdef public int bship_logic_get_bombed_positions(int pid, int* N, int8_t** bombs):
-    "Get pid's opponents bombed positions, in order"
+    "Get pid's opponent's bombed positions, in order"
     if pid not in players:
         N[0] = 0
         bombs[0] = NULL
@@ -371,7 +376,7 @@ def get_bombed_positions(pid):
     cdef int N
     cdef int8_t* bombs
     res = bship_logic_get_bombed_positions(pid, &N, &bombs)
-    return (res, N, array_to_python(bombs, 2*N))
+    return (res, N, [] if N==0 else array_to_python(bombs, 2*N))
     
 
 def notification(pid, state, data_capsule, success):
@@ -398,5 +403,5 @@ def request_notify(pid, state, data_capsule):
     # Note: the unit tests never actually pass in anything as a
     # data_capsule, this is solely a websockets thing, the unit tests
     # don't need to care about it
-    return bship_logic_request_notify(pid, state, NULL)
+    return bship_logic_request_notify(pid, state, malloc(1))
     
