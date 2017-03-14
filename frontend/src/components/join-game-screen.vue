@@ -28,8 +28,8 @@ export default {
       this.gameCode = code
     },
     joinGame() {
-      // convert code back from HEX string
-      const code = parseInt(this.gameCode, 16)
+      // convert gameID into a code made of numbers and letters
+      const code = parseInt(this.gameCode, 10 + 26)
       if (!isNaN(code)) {
         this.$store.dispatch('joinGame', {
           gameID: code,

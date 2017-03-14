@@ -14,8 +14,8 @@ export default {
     code() {
       const gameID = this.$store.state.game.ID
       if (gameID !== undefined) {
-        // show as HEX string for ease of use
-        return gameID.toString(16).toUpperCase()
+        // convert gameID into a code made of numbers and letters
+        return gameID.toString(10 + 26).toUpperCase()
       }
       return gameID
     },
