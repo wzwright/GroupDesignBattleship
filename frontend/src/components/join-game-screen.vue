@@ -1,0 +1,50 @@
+<template>
+  <div>
+    <textInput
+      inputID="code"
+      label="Code:"
+      v-on:input="updateUserInput"
+      v-on:keyup.enter.native="joinGame"
+      ></textInput>
+    <button id="joinGame" v-on:click="joinGame">Join Game</button>
+  </div>
+</template>
+
+<script>
+import textInput from './textInput.vue'
+
+export default {
+  name: 'joinScreen',
+  components: {
+    textInput,
+  },
+  data() {
+    return {
+      gameCode: '',
+    }
+  },
+  methods: {
+    updateUserInput(code) {
+      this.gameCode = code
+    },
+    joinGame() {
+      // convert code back from HEX string
+      const code = parseInt(this.gameCode, 16)
+      if (!isNaN(code)) {
+        this.$store.dispatch('joinGame', {
+          gameID: code,
+          okCallback: () => {
+            this.$emit('changeScreen', 'noOverlay')
+          },
+          errorCallback: () => {
+            // TODO: tell the user something went wrong
+          },
+        })
+      }
+    },
+  },
+}
+</script>
+
+<style lang="scss">
+</style>
