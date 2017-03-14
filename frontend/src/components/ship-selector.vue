@@ -10,8 +10,7 @@
       <button id="submit" v-on:click="submitGrid">Submit</button>
     </div>
     <shipCanvas
-      ref="shipCanvas"
-      v-on:click.native="clickAction"
+      v-on:gridClicked="selectShip"
       v-bind:ships="ships"
       v-bind:bombs="bombs"
     ></shipCanvas>
@@ -39,8 +38,7 @@ export default {
     },
   },
   methods: {
-    clickAction(event) {
-      const pos = this.$refs.shipCanvas.getCoordinate(event.clientX, event.clientY)
+    selectShip(pos) {
       this.$store.commit('setShip',
         {
           shipName: this.activeShip,
@@ -61,11 +59,10 @@ export default {
         }
       }
 
-      // TODO: FIX: This is giving an "Invalid Grid" error
       this.$store.dispatch('submitGrid', {
         grid,
         okCallback: () => {
-          this.$emit('changeScreen', 'bombingScreen')
+          this.$emit('changeScreen', 'waitingScreen')
         },
       })
     },

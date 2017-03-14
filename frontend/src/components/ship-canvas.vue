@@ -1,7 +1,11 @@
 <template>
-  <canvas ref="canvas">{{ships}}</canvas>
+  <canvas ref="canvas" v-on:click="sendCoordToParent">
+    {{ships}}
+    {{bombsOK}}
+    {{bombsFailed}}
+    {{bombTarget}}
+  </canvas>
 </template>
-
 
 <script>
 export default {
@@ -16,16 +20,34 @@ export default {
       },
     }
   },
-  props: ['ships', 'bombs'],
+  props: {
+    ships: {
+      type: Object,
+      default: () => {},
+    },
+    bombsOK: {
+      type: Array,
+      default: () => [],
+    },
+    bombsFailed: {
+      type: Array,
+      default: () => [],
+    },
+    bombTarget: {
+      type: Array,
+      default: () => [],
+    },
+  },
   updated() {
     this.clearGrid()
-    this.drawAllShips()
+    this.drawAll()
   },
   mounted() {
     this.canvas = this.$refs.canvas
     this.ctx = this.canvas.getContext('2d')
     this.setSize()
     this.drawGrid()
+    this.drawAll()
     window.addEventListener('resize', this.setSize)
   },
   methods: {
@@ -38,6 +60,10 @@ export default {
       this.canvas.style.width = `${width}px`
       this.canvas.style.height = `${height}px`
       this.drawGrid()
+    },
+    sendCoordToParent(event) {
+      let pos = this.getCoordinate(event.clientX, event.clientY)
+      this.$emit('gridClicked', pos)
     },
     getCoordinate(posX, posY) {
       // posX and posY are client coordinates (e.g. from event.clientX)
@@ -59,24 +85,40 @@ export default {
     clearAll() {
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
     },
-    drawAllShips() {
+    drawAll() {
+      this.drawShips()
+      this.drawCells(this.bombsOK, 'red')
+      this.drawCells(this.bombsFailed, 'skyblue')
+      if (this.bombTarget.length === 2) {
+        const [x, y] = this.bombTarget
+        this.drawCell(x, y, 'yellow')
+      }
+    },
+    drawShips() {
       for (const key in this.ships) {
         const ship = this.ships[key]
         if (ship.start !== undefined) {
           const { x: x1, y: y1 } = ship.start
           const { x: x2, y: y2 } = ship.end
 
-          let x = x1
-          let y = y1
-          for (let i = 0; i < ship.size; i++) {
-            if (x1 === x2) {
-              y = y1 + i
-            } else {
-              x = x1 + i
+          if (x1 === x2) {
+            // horizontal ship
+            for (let y = y1; y <= y2; y++) {
+              this.drawCell(x1, y, 'steelblue')
             }
-            this.drawCell(x, y, 'blue')
+          } else {
+            // vertical ship
+            for (let x = x1; x <= x2; x++) {
+              this.drawCell(x, y1, 'steelblue')
+            }
           }
         }
+      }
+    },
+    drawCells(cells, colour) {
+      for (let i = 0; i < cells.length; i++) {
+        let [x, y] = cells[i]
+        this.drawCell(x, y, colour)
       }
     },
     drawRect(x, y, w, h, colour) {
