@@ -15,9 +15,10 @@ export default {
       canvas: null,
       ctx: null,
       grid: {
-        cellSize: 30,
+        cellSize: 32,
         cells: 10,
       },
+      oceanImage: new Image(),
     }
   },
   props: {
@@ -39,15 +40,16 @@ export default {
     },
   },
   updated() {
-    this.clearGrid()
+    this.drawGrid()
     this.drawAll()
   },
   mounted() {
     this.canvas = this.$refs.canvas
     this.ctx = this.canvas.getContext('2d')
-    this.setSize()
-    this.drawGrid()
-    this.drawAll()
+    this.ctx.imageSmoothingEnabled = false
+    this.preloadOceanImage()
+      .then(this.setSize)
+      .catch(() => { console.error('Unable to load ocean image') })
     window.addEventListener('resize', this.setSize)
   },
   methods: {
@@ -62,6 +64,7 @@ export default {
       this.ctx.scale(ratio, ratio)
 
       this.drawGrid()
+      this.drawAll()
     },
     sendCoordToParent(event) {
       let pos = this.getCoordinate(event.clientX, event.clientY)
@@ -76,13 +79,6 @@ export default {
       const x = Math.floor((posX - rect.left) / this.grid.cellSize)
       const y = Math.floor((posY - rect.top) / this.grid.cellSize)
       return { x, y }
-    },
-    clearGrid() {
-      for (let x = 0; x <= 10; x++) {
-        for (let y = 0; y <= 10; y++) {
-          this.drawCell(x, y, 'white')
-        }
-      }
     },
     clearAll() {
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
@@ -117,6 +113,17 @@ export default {
         }
       }
     },
+    preloadOceanImage() {
+      return new Promise((resolve, reject) => {
+        let img = new Image()
+        img.onload = () => {
+          this.oceanImage = img
+          resolve()
+        }
+        img.onerror = () => reject()
+        img.src = require('./assets/ocean.png')
+      })
+    },
     drawCells(cells, colour) {
       for (let i = 0; i < cells.length; i++) {
         let [x, y] = cells[i]
@@ -139,9 +146,18 @@ export default {
       )
     },
     drawGrid() {
-      this.ctx.fillStyle = 'black'
-      this.ctx.lineWidth = 1
       const { cellSize, cells } = this.grid
+
+      // ocean
+      for (let x = 0; x <= 10 * cellSize; x += cellSize) {
+        for (let y = 0; y <= 10 * cellSize; y += cellSize) {
+          const num = Math.floor(Math.random() * 4)
+          this.ctx.drawImage(this.oceanImage, num * 32, 0, 32, 32, x, y, cellSize, cellSize)
+        }
+      }
+
+      this.ctx.strokeStyle = 'white'
+      this.ctx.lineWidth = 1
       for (let i = 0; i <= cells; i++) {
         this.ctx.beginPath()
         this.ctx.moveTo(0.5, (i * cellSize) + 0.5)
@@ -160,4 +176,7 @@ export default {
 </script>
 
 <style lang="scss">
+canvas {
+  border: 1px solid black;
+}
 </style>
