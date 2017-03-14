@@ -5,7 +5,7 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpointer-to-int-cast"
 #define STB_DEFINE
-#include "stb.h"
+#include "stb/stb.h"
 #pragma GCC diagnostic pop
 #pragma GCC diagnostic warning "-Wall"
 #pragma GCC diagnostic ignored "-Wunused-function"
