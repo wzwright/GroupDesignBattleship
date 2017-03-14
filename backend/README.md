@@ -1,13 +1,11 @@
 # Quickstart
 
-1. Install libjansson
+1. Install libjansson, Cython and Python 3
 2. Run `make` to build the server.
 3. Run `make run` to run the server.
 4. Start talking to `ws://localhost:8080/`, e.g. using [telsocket](http://telsocket.org/)
 
 # Testing
-
-![](coverage.png)
 
 Run `make test` to run unit tests. Example of a successful run:
 
