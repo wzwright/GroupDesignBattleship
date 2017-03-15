@@ -28,14 +28,19 @@ function doRPC(method, args, okCallback, errorCallback) {
   })
 }
 
-// Takes no arguments, result is an array like [gameID, playerID]
-export function newGame(okCallback, errorCallback) {
-  doRPC('newGame', null, okCallback, errorCallback)
+// Takes a nickname, result is an array like [gameID, playerID]
+export function newGame(nickname, okCallback, errorCallback) {
+  doRPC('newGame', [nickname], okCallback, errorCallback)
 }
 
-// Takes a gameID, result is a playerID
-export function joinGame(gameID, okCallback, errorCallback) {
-  doRPC('joinGame', [gameID], okCallback, errorCallback)
+// Takes a gameID and nickname, result is a playerID
+export function joinGame(gameID, nickname, okCallback, errorCallback) {
+  doRPC('joinGame', [gameID, nickname], okCallback, errorCallback)
+}
+
+// Takes a playerID, result is the opponent's nickname
+export function getOpponentNickname(playerID, okCallback, errorCallback) {
+  doRPC('getOpponentNickname', [playerID], okCallback, errorCallback)
 }
 
 /*
