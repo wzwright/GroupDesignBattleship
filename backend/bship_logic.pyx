@@ -54,7 +54,7 @@ class Game:
         return (self.pid1 is not None) and (self.pid2 is not None)
 
 # pid -> list of (state, user_data)
-pending_notifications = {} 
+pending_notifications = {}
 
 games = {} # gid -> game
 players = {} # pid -> player
@@ -393,18 +393,16 @@ def get_bombed_positions(pid):
     cdef int8_t* bombs
     res = bship_logic_get_bombed_positions(pid, &N, &bombs)
     return (res, N, [] if N==0 else array_to_python(bombs, 2*N))
-    
 
 def notification(pid, state, data_capsule, success):
     bship_logic_notification(pid, state, cpython.PyCapsule_GetPointer(data_capsule, "user_data"), success)
-        
 
 cdef public int bship_logic_request_notify(int pid, int state, void* rdata):
     "Register that pid is waiting for their opponent to enter state"
     if pid not in players:
         return Error.INVALID_PLYR_ID
     me = players[pid]
-    data = cpython.PyCapsule_New(rdata, "user_data", NULL) 
+    data = cpython.PyCapsule_New(rdata, "user_data", NULL)
     if me.state_code == state:
         # then we notify immediately
         notification(pid, state, data, True)
@@ -420,4 +418,3 @@ def request_notify(pid, state, data_capsule):
     # data_capsule, this is solely a websockets thing, the unit tests
     # don't need to care about it
     return bship_logic_request_notify(pid, state, malloc(1))
-    

@@ -297,5 +297,3 @@ class BombTests(unittest.TestCase):
 
         self.assertEqual(b.get_bombed_positions(pid1), (0, 1, [0,4]))
         self.assertEqual(b.get_bombed_positions(pid2), (0, 2, [0,0,0,1]))
-
-
