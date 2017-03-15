@@ -16,6 +16,7 @@ export default new Vuex.Store({
   state: {
     player: {
       ID: undefined,
+      nickname: 'anonymous',
       ships: {
         carrier: {},
         battleship: {},
@@ -26,6 +27,7 @@ export default new Vuex.Store({
       bombs: [],
     },
     opponent: {
+      nickname: 'anonymous',
       grid: [],
     },
     game: {
@@ -38,6 +40,12 @@ export default new Vuex.Store({
     },
     setPlayerID(state, ID) {
       Vue.set(state.player, 'ID', ID)
+    },
+    setPlayerNickname(state, nickname) {
+      Vue.set(state.player, 'nickname', nickname)
+    },
+    setOpponentNickname(state, nickname) {
+      Vue.set(state.opponent, 'nickname', nickname)
     },
     setShip(state, payload) {
       // TODO: don't allow invalid ships to be committed
@@ -63,6 +71,7 @@ export default new Vuex.Store({
   actions: {
     newGame({ commit, state }, { okCallback, errorCallback }) {
       api.newGame(
+        state.player.nickname,
         ([gameID, playerID]) => {
           commit('setGameID', gameID)
           commit('setPlayerID', playerID)
@@ -78,6 +87,7 @@ export default new Vuex.Store({
       api.waitForPlayer(
         state.player.ID,
         () => {
+          dispatch('getOpponentNickname', {})
           if (typeof okCallback === 'function') okCallback()
         },
         (e) => {
@@ -92,16 +102,31 @@ export default new Vuex.Store({
         },
       )
     },
-    joinGame({ commit }, { gameID, okCallback, errorCallback }) {
+    joinGame({ dispatch, commit, state }, { gameID, nickname, okCallback, errorCallback }) {
       api.joinGame(
         gameID,
+        state.player.nickname,
         (playerID) => {
           commit('setGameID', gameID)
           commit('setPlayerID', playerID)
+          dispatch('getOpponentNickname', {})
           if (typeof okCallback === 'function') okCallback()
         },
         (e) => {
           console.error(`Error joining game: ${e.message}`)
+          if (typeof errorCallback === 'function') errorCallback()
+        },
+      )
+    },
+    getOpponentNickname({ commit, state }, { okCallback, errorCallback }) {
+      api.getOpponentNickname(
+        state.player.ID,
+        (nickname) => {
+          commit('setOpponentNickname', nickname)
+          if (typeof okCallback === 'function') okCallback()
+        },
+        (e) => {
+          console.error(`Error getting nickname: ${e.message}`)
           if (typeof errorCallback === 'function') errorCallback()
         },
       )
