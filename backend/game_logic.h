@@ -71,6 +71,8 @@ typedef enum {
 #define ERR_NO_OPPONENT -6
 /** Tried to execute an action out of turn */
 #define ERR_OUT_OF_TURN -7
+/** Nickname is longer than 100 bytes */
+#define ERR_NICKNAME_TOO_LONG -8
 
 static inline const char* error_to_string(int error) {
 	switch(error) {
@@ -82,6 +84,7 @@ static inline const char* error_to_string(int error) {
 	case ERR_INVALID_BOMB_TARGET: return "Invalid bomb target";
 	case ERR_NO_OPPONENT:         return "No opponent";
 	case ERR_OUT_OF_TURN:         return "Out of turn";
+	case ERR_NICKNAME_TOO_LONG:   return "Nickname longer than 100 bytes";
 	default:                      return "Unknown error";
 	}
 }
@@ -92,14 +95,20 @@ static inline const char* error_to_string(int error) {
 /* All functions with an integer result type return an error value in
  * case of error */
 
-/** Create a new game. Returns a pair of (game_id, plyr_id)
- * representing the public ID of the game used to join it and the
- * private ID used by this player to send further commands */
-new_game_result bship_logic_new_game(void);
+/** Create a new game. The nickname is copied. Returns a pair of
+ * (game_id, plyr_id) representing the public ID of the game used to
+ * join it and the private ID used by this player to send further
+ * commands. */
+new_game_result bship_logic_new_game(const char *nickname);
 
-/** Joins a game identified by a game_id. Returns the private ID used
- * by the joining player to send further commands about this game. */
-plyr_id bship_logic_join_game(game_id);
+/** Joins a game identified by a game_id. The nickname is copied.
+ * Returns the private ID used by the joining player to send further
+ * commands about this game. */
+int bship_logic_join_game(game_id,const char *nickname);
+
+/** Get the opponent's nickname. Returns 0 on sucess, negative on
+ * error. Nickname must not be modified or freed by caller. */
+int bship_logic_get_opponent_nickname(plyr_id, char **nickname);
 
 /** Submits the initial positions of a player's ships. */
 int bship_logic_submit_grid(plyr_id,grid);

@@ -61,10 +61,11 @@ players = {} # pid -> player
 
 
 class Player:
-    def __init__(self, pid, game):
+    def __init__(self, pid, game, nickname):
         self.pid = pid
         self.gid = game.gid
         self.grid = None # The "grid" is the set of ships, essentially
+        self.nickname = nickname
         self.set_state(PlayerState.WAIT_FOR_JOIN)
         self.ship_points = None # This is where we keep the positions
                                 # of the points of ships
@@ -189,7 +190,7 @@ def bad_target(x,y):
 
 # C API starts here
 
-cdef public new_game_result bship_logic_new_game():
+cdef public new_game_result bship_logic_new_game(const char *nickname):
     newgid = random.randint(0, 2**31 -1)
     newpid = random.randint(0, 2**31 -1)
     while newgid in games:
@@ -198,7 +199,7 @@ cdef public new_game_result bship_logic_new_game():
         newpid = random.randint(0, 2**31 -1)
     newgame = Game(newgid)
     games[newgid] = newgame
-    players[newpid] = Player(newpid, newgame)
+    players[newpid] = Player(newpid, newgame, <bytes> nickname)
     cdef new_game_result res
     res.gid = newgid
     res.pid = newpid
@@ -206,12 +207,12 @@ cdef public new_game_result bship_logic_new_game():
 
 # After each C function, we add a Python version that we can use for
 # non-Cython unit testing
-def new_game():
+def new_game(nickname):
     cdef new_game_result res
-    res = bship_logic_new_game()
+    res = bship_logic_new_game(nickname)
     return (res.gid, res.pid)
 
-cdef public int bship_logic_join_game(int gid):
+cdef public int bship_logic_join_game(int gid, const char *nickname):
     if gid not in games:
         return Error.NO_SUCH_GAME
     if games[gid].full():
@@ -219,11 +220,21 @@ cdef public int bship_logic_join_game(int gid):
     newpid = random.randint(0, 2**31-1)
     while newpid in players:
         newpid = random.randint(0, 2**31 -1)
-    players[newpid] = Player(newpid, games[gid])
+    players[newpid] = Player(newpid, games[gid], <bytes> nickname)
     return newpid
 
-def join_game(gid):
-    return bship_logic_join_game(gid)
+def join_game(gid, nickname):
+    return bship_logic_join_game(gid, nickname)
+
+cdef public int bship_logic_get_opponent_nickname(int pid, char** nickname):
+    nickname[0] = NULL
+    if pid not in players:
+        return Error.INVALID_PLYR_ID
+    opp = players[pid].opponent()
+    if opp is None:
+        return Error.NO_OPPONENT
+    nickname[0] = <char*> opp.nickname
+    return 0
 
 cdef grid_to_python(grid grid):
     pygrid = []

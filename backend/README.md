@@ -29,14 +29,20 @@ Run `make test` to run unit tests. Example of a successful run:
     > {"jsonrpc": "1.1", "method": "newGame", "id": 5666}
     < {"id": 5666, "error": {"code": -32600, "message": "Invalid Request", "data": "JSON-RPC version not 2.0"}, "jsonrpc": "2.0"}
 
-    > {"jsonrpc": "2.0", "method": "newGame", "id": 5667}
-    < {"id": 5667, "result": [0, 0], "jsonrpc": "2.0"}
+    > {"jsonrpc": "2.0", "method": "newGame", "params": ["Marius"], "id": 5667}
+    < {"id": 5667, "result": [5, 7], "jsonrpc": "2.0"}
 
-    > {"jsonrpc": "2.0", "method": "joinGame", "id": 111, "params": [1]}
+    > {"jsonrpc": "2.0", "method": "joinGame", "id": 111, "params": [1, "Antonia"]}
     < {"id": 111, "error": {"code": -1, "message": "No such game", "data": null}, "jsonrpc": "2.0"}
 
-    > {"jsonrpc": "2.0", "method": "joinGame", "id": 111, "params": [5]}
+    > {"jsonrpc": "2.0", "method": "joinGame", "id": 111, "params": [5, "Antonia"]}
     < {"id": 111, "result": 8, "jsonrpc": "2.0"}
+
+    > {"jsonrpc": "2.0", "method": "getOpponentNickname", "id": 123, "params":[7]}
+    < {"id": 123, "result": "Antonia", "jsonrpc": "2.0"}
+
+    > {"jsonrpc": "2.0", "method": "getOpponentNickname", "id": 124, "params":[8]}
+    < {"id": 124, "result": "Marius", "jsonrpc": "2.0"}
 
     > {"jsonrpc": "2.0", "method": "submitGrid", "id": 222}
     < {"id": 222, "error": {"code": -32602, "message": "Invalid params", "data": "Expected 2 params"}, "jsonrpc": "2.0"}
