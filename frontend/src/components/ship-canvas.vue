@@ -59,6 +59,8 @@ export default {
       this.canvas.height = height * ratio
       this.canvas.style.width = `${width}px`
       this.canvas.style.height = `${height}px`
+      this.ctx.scale(ratio, ratio)
+
       this.drawGrid()
     },
     sendCoordToParent(event) {
