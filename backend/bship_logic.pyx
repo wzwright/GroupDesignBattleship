@@ -236,6 +236,11 @@ cdef public int bship_logic_get_opponent_nickname(int pid, char** nickname):
     nickname[0] = <char*> opp.nickname
     return 0
 
+def get_opponent_nickname(pid):
+    cdef char* nickname
+    bship_logic_get_opponent_nickname(pid, &nickname)
+    return nickname
+
 cdef grid_to_python(grid grid):
     pygrid = []
     cdef ship ship

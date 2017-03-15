@@ -3,6 +3,10 @@ import bship_logic as b
 
 b.TEST = True
 
+class Nicks:
+    testNick = str.encode("testNick")
+    testNick2 = str.encode("testNick2")
+
 class ApiTests(unittest.TestCase):
     "Test the behaviour of the public API"
     def setUp(self):
@@ -18,36 +22,43 @@ class ApiTests(unittest.TestCase):
 
     def test_new_game(self):
         "new_game generates a valid gid and pid"
-        (gid, pid) = b.new_game()
+        (gid, pid) = b.new_game(Nicks.testNick)
         self.assertTrue(gid in b.games)
         self.assertTrue(pid in b.players)
 
     def test_join_twice(self):
         "join_game fails when you try to join twice"
-        (gid, pid) = b.new_game()
-        b.join_game(gid)
-        b.join_game(gid)
-        self.assertEqual(b.join_game(gid), b.Error.ALREADY_STARTED)
+        (gid, pid) = b.new_game(Nicks.testNick)
+        b.join_game(gid, Nicks.testNick2)
+        b.join_game(gid, Nicks.testNick2)
+        self.assertEqual(b.join_game(gid, Nicks.testNick2), b.Error.ALREADY_STARTED)
 
     def test_join_invalid(self):
         "join_game fails with invalid gid"
-        (gid, pid) = b.new_game()
-        self.assertEqual(b.join_game(gid+1), b.Error.NO_SUCH_GAME)
+        (gid, pid) = b.new_game(Nicks.testNick)
+        self.assertEqual(b.join_game(gid+1, Nicks.testNick2), b.Error.NO_SUCH_GAME)
+
+    def test_get_opponent_nickname(self):
+        "get_opponent_nickname works"
+        (gid, pid) = b.new_game(Nicks.testNick)
+        pid2 = b.join_game(gid, Nicks.testNick2)
+        self.assertEqual(Nicks.testNick,  b.get_opponent_nickname(pid2))
+        self.assertEqual(Nicks.testNick2, b.get_opponent_nickname(pid))
 
     def test_get_plyr_state(self):
         "get_plyr_state succeeds if pid is valid"
-        (gid, pid) = b.new_game()
+        (gid, pid) = b.new_game(Nicks.testNick)
         self.assertEqual(b.get_plyr_state(pid), b.players[pid].state_code)
 
     def test_get_game_end(self):
         "get_game_end fails when called inappropriately"
         # before opponent joins (but we have)
-        (gid, pid) = b.new_game()
+        (gid, pid) = b.new_game(Nicks.testNick)
 #       self.assertEqual(b.get_game_end(pid), b.Error.NO_OPPONENT)
 
     def test_submit_early(self):
         "submit_grid fails when called too early"
-        (gid, pid) = b.new_game()
+        (gid, pid) = b.new_game(Nicks.testNick)
         self.assertEqual(b.submit_grid(pid, [[0,0,1,0]
                                             ,[0,1,2,1]
                                             ,[0,2,2,2]
@@ -57,9 +68,9 @@ class ApiTests(unittest.TestCase):
     def test_submit_invalid(self):
         "submit_grid fails with bad grids"
         # game starts, other player joins, we place first
-        (gid, pid) = b.new_game()
+        (gid, pid) = b.new_game(Nicks.testNick)
 
-        otherpid = b.join_game(gid)
+        otherpid = b.join_game(gid, Nicks.testNick2)
         # empty grid
         self.assertEqual(b.submit_grid(pid, []), b.Error.INVALID_GRID)
         # too few ships
@@ -107,8 +118,8 @@ class PlayerTests(unittest.TestCase):
         # note: this should never happen if the user uses the API
         # provided. join_game checks and returns an error before the
         # join call reaches the player.
-        (gid, pid) = b.new_game()
-        b.join_game(gid)
+        (gid, pid) = b.new_game(Nicks.testNick)
+        b.join_game(gid, Nicks.testNick2)
         with self.assertRaises(b.GameFullException):
             b.players[pid].join(b.games[gid])
 
@@ -117,7 +128,7 @@ class PlayerTests(unittest.TestCase):
         "Player.opponent doesn't assume game has correct pids"
         badgame = b.Game(1234)
         b.games[1234] = badgame
-        me = b.Player(1, badgame)
+        me = b.Player(1, badgame, Nicks.testNick)
         b.players[1] = me
         # a hacker (or something) then changes the pids so they refer
         # to no player
@@ -144,27 +155,27 @@ class NotificationTests(unittest.TestCase):
 
     def test_notify_delayed_join(self):
         "Player gets notified when other player joins after some time"
-        (gid, pid) = b.new_game()
+        (gid, pid) = b.new_game(Nicks.testNick)
         b.request_notify(pid, b.PlayerState.SUBMIT_GRID, None)
         # notification has been registered as waiting
         self.assertTrue(pid in b.pending_notifications)
         self.assertTrue(b.PlayerState.SUBMIT_GRID in [x for (x,y) in b.pending_notifications[pid]])
-        b.join_game(gid)
+        b.join_game(gid, Nicks.testNick2)
         # now the notification should be gone. As per above, we assume
         # it was responded to
         self.assertFalse(pid in b.pending_notifications and (b.PlayerState.SUBMIT_GRID, None) in b.pending_notifications[pid])
 
     def test_notify_immediate_join(self):
         "Player gets notified immediately when other player is already in game"
-        (gid, pid) = b.new_game()
-        b.join_game(gid)
+        (gid, pid) = b.new_game(Nicks.testNick)
+        b.join_game(gid, Nicks.testNick2)
         b.request_notify(pid, b.PlayerState.SUBMIT_GRID, None)
         # the notification should never have been registered at all
         self.assertFalse(pid in b.pending_notifications and (b.PlayerState.SUBMIT_GRID, None) in b.pending_notifications[pid])
 
     def test_multiple_notifications(self):
         "Player waiting for multiple states is notified correctly"
-        (gid, pid) = b.new_game()
+        (gid, pid) = b.new_game(Nicks.testNick)
         # we wait for the same thing twice: both should be responded
         # to at the same time
         b.request_notify(pid, b.PlayerState.SUBMIT_GRID, None)
@@ -175,7 +186,7 @@ class NotificationTests(unittest.TestCase):
         # responded to at the same time as the others
         b.request_notify(pid, b.PlayerState.BOMB, None)
         self.assertTrue(b.PlayerState.BOMB in [x for (x,y) in b.pending_notifications[pid]])
-        b.join_game(gid)
+        b.join_game(gid, Nicks.testNick2)
         # wait for join notifications should be gone
         self.assertFalse(pid in b.pending_notifications and (b.PlayerState.SUBMIT_GRID, None) in b.pending_notifications[pid])
         # bomb notifications should still be here
@@ -190,10 +201,10 @@ class StateTests(unittest.TestCase):
 
     def test_normal_game(self):
         "state_codes are correct during a normal game, where one player wins"
-        (gid, pid1) = b.new_game()
+        (gid, pid1) = b.new_game(Nicks.testNick)
         me = b.players[pid1]
         self.assertEqual(me.state_code, b.PlayerState.WAIT_FOR_JOIN)
-        pid2 = b.join_game(gid)
+        pid2 = b.join_game(gid, Nicks.testNick2)
         other = b.players[pid2]
         self.assertEqual(me.state_code, b.PlayerState.SUBMIT_GRID)
         self.assertEqual(other.state_code, b.PlayerState.SUBMIT_GRID)
@@ -243,10 +254,10 @@ class BombTests(unittest.TestCase):
         "bomb_position fails with bad arguments or if called too early"
         # bad pid
         self.assertEqual(b.bomb_position(123,0,0), b.Error.INVALID_PLYR_ID)
-        (gid, pid1) = b.new_game()
+        (gid, pid1) = b.new_game(Nicks.testNick)
         # before opponent joins
         self.assertEqual(b.bomb_position(pid1,0,0), b.Error.NO_OPPONENT)
-        pid2 = b.join_game(gid)
+        pid2 = b.join_game(gid, Nicks.testNick2)
         # before the bombing phase starts
         self.assertEqual(b.bomb_position(pid1,0,0), b.Error.OUT_OF_TURN)
         # players submit grid
@@ -268,8 +279,8 @@ class BombTests(unittest.TestCase):
     def test_bomb_history(self):
         "get_bomb_history fails with bad args but is correct otherwise"
         self.assertEqual(b.get_bombed_positions(123), (b.Error.INVALID_PLYR_ID, 0, []))
-        (gid, pid1) = b.new_game()
-        pid2 = b.join_game(gid)
+        (gid, pid1) = b.new_game(Nicks.testNick)
+        pid2 = b.join_game(gid, Nicks.testNick2)
         b.submit_grid(pid1, [[0,0,1,0]
                              ,[0,1,2,1]
                              ,[0,2,2,2]
