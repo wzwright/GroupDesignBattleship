@@ -1,7 +1,7 @@
 <template>
   <div id="bombingScreen">
     <div class="shipContainer">
-      <p>Opponent's ships</p>
+      <p>{{opponentNickname}}'s ships</p>
       <opponentCanvas class="bombingCanvas"
          v-on:keyup.enter.native="bombSubmit"
          v-bind:bombsOK="bombsOK"
@@ -15,7 +15,7 @@
       >Bomb!</button>
     </div>
     <div class="shipContainer playerShipContainer">
-      <p>Your ships</p>
+      <p>{{playerNickname}}'s ships</p>
       <playerCanvas class="bombingCanvas"
          v-bind:ships="playerShips"
          v-bind:bombsOK="playerBombs"
@@ -57,6 +57,12 @@ export default {
     },
     playerBombs() {
       return this.$store.state.player.bombs
+    },
+    playerNickname() {
+      return this.$store.state.player.nickname
+    },
+    opponentNickname() {
+      return this.$store.state.opponent.nickname
     },
   },
   mounted() {
