@@ -19,7 +19,8 @@
       <p>{{playerNickname}}'s ships</p>
       <playerCanvas class="bombingCanvas"
          v-bind:ships="playerShips"
-         v-bind:bombsOK="playerBombs"
+         v-bind:bombsOK="playerBombsOK"
+         v-bind:bombsFailed="playerBombsFailed"
       ></playerCanvas>
     </div>
 
@@ -49,15 +50,14 @@ export default {
       bombsOK: [],
       bombsFailed: [],
       bombTarget: [],
+      playerBombsOK: [],
+      playerBombsFailed: [],
       won: false,
     }
   },
   computed: {
     playerShips() {
       return this.$store.state.player.grid
-    },
-    playerBombs() {
-      return this.$store.state.player.bombs
     },
     playerNickname() {
       return this.$store.state.player.nickname
@@ -106,6 +106,7 @@ export default {
         okCallback: () => {
           this.$store.dispatch('getBombedPositions', {
             okCallback: () => {
+              this.calculateBombTypes()
               this.$store.dispatch('getGameEnd', {
                 okCallback: ({ gameOver, won }) => {
                   if (gameOver) {
@@ -120,6 +121,26 @@ export default {
           })
         },
       })
+    },
+    calculateBombTypes() {
+      const bombs = this.$store.state.player.bombs
+      let bombsOK = []
+      let bombsFailed = []
+      bombs.forEach((bomb) => {
+        let [x, y] = bomb
+        let hitAShip = this.playerShips.reduce(
+          (acc, [x1, y1, x2, y2]) => acc || (x1 <= x && x <= x2 && y1 <= y && y <= y2)
+        , false)
+
+        if (hitAShip) {
+          bombsOK.push(bomb)
+        } else {
+          bombsFailed.push(bomb)
+        }
+      })
+
+      this.playerBombsOK = bombsOK
+      this.playerBombsFailed = bombsFailed
     },
   },
 }
