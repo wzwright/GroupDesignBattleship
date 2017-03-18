@@ -18,7 +18,7 @@ export default {
         cellSize: 32,
         cells: 10,
       },
-      oceanImage: new Image(),
+      sprites: new Image(),
     }
   },
   props: {
@@ -47,9 +47,10 @@ export default {
     this.canvas = this.$refs.canvas
     this.ctx = this.canvas.getContext('2d')
     this.ctx.imageSmoothingEnabled = false
-    this.preloadOceanImage()
+    this.preloadSprites()
       .then(this.setSize)
-      .catch(() => { console.error('Unable to load ocean image') })
+      .catch(() => { console.error('Unable to load sprites') })
+      // TODO: use the old method of coloured squares when sprites are unable to load
     window.addEventListener('resize', this.setSize)
   },
   methods: {
@@ -113,15 +114,15 @@ export default {
         }
       }
     },
-    preloadOceanImage() {
+    preloadSprites() {
       return new Promise((resolve, reject) => {
         let img = new Image()
         img.onload = () => {
-          this.oceanImage = img
+          this.sprites = img
           resolve()
         }
         img.onerror = () => reject()
-        img.src = require('./assets/ocean.png')
+        img.src = require('./assets/sprites.png')
       })
     },
     drawCells(cells, colour) {
@@ -152,7 +153,7 @@ export default {
       for (let x = 0; x <= 10 * cellSize; x += cellSize) {
         for (let y = 0; y <= 10 * cellSize; y += cellSize) {
           const num = Math.floor(Math.random() * 4)
-          this.ctx.drawImage(this.oceanImage, num * 32, 0, 32, 32, x, y, cellSize, cellSize)
+          this.ctx.drawImage(this.sprites, num * 32, 0, 32, 32, x, y, cellSize, cellSize)
         }
       }
 
