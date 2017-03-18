@@ -16,7 +16,7 @@ export default new Vuex.Store({
   state: {
     player: {
       ID: undefined,
-      nickname: 'anonymous',
+      nickname: 'Anonymous',
       ships: {
         carrier: {},
         battleship: {},
@@ -27,7 +27,7 @@ export default new Vuex.Store({
       bombs: [],
     },
     opponent: {
-      nickname: 'anonymous',
+      nickname: 'Anonymous',
       grid: [],
     },
     game: {
