@@ -85,15 +85,22 @@ export default {
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
     },
     drawAll() {
+      this.drawOcean()
       this.drawShips()
-      this.drawCells(this.bombsOK, 'red')
-      this.drawCells(this.bombsFailed, 'skyblue')
+      // draw ocean again before drawing hit ships
+      // TODO: After issues #23 #25 are done this can be improved
+      this.drawImageCells(this.bombsOK, 0, 0)
+      this.drawImageCells(this.bombsOK, 1, 1)
+      this.drawImageCells(this.bombsFailed, 2, 1)
       if (this.bombTarget.length === 2) {
         const [x, y] = this.bombTarget
-        this.drawCell(x, y, 'yellow')
+        this.drawCell(x, y, 'rgba(255, 255, 0, 100)')
       }
+
+      this.drawGrid()
     },
     drawShips() {
+      const cellSize = this.grid.cellSize
       for (const key in this.ships) {
         const ship = this.ships[key]
         if (ship.start !== undefined) {
@@ -103,14 +110,23 @@ export default {
           if (x1 === x2) {
             // horizontal ship
             for (let y = y1; y <= y2; y++) {
-              this.drawCell(x1, y, 'steelblue')
+              this.drawImageCell(x1 * cellSize, y * cellSize, 0, 1)
             }
           } else {
             // vertical ship
             for (let x = x1; x <= x2; x++) {
-              this.drawCell(x, y1, 'steelblue')
+              this.drawImageCell(x * cellSize, y1 * cellSize, 0, 1)
             }
           }
+        }
+      }
+    },
+    drawOcean() {
+      const cellSize = this.grid.cellSize
+      for (let x = 0; x <= 10 * cellSize; x += cellSize) {
+        for (let y = 0; y <= 10 * cellSize; y += cellSize) {
+          const num = Math.floor(Math.random() * 4)
+          this.drawImageCell(x, y, num, 0)
         }
       }
     },
@@ -124,6 +140,13 @@ export default {
         img.onerror = () => reject()
         img.src = require('./assets/sprites.png')
       })
+    },
+    drawImageCells(cells, spritesX, spritesY) {
+      const cellSize = this.grid.cellSize
+      for (let i = 0; i < cells.length; i++) {
+        let [x, y] = cells[i]
+        this.drawImageCell(x * cellSize, y * cellSize, spritesX, spritesY)
+      }
     },
     drawCells(cells, colour) {
       for (let i = 0; i < cells.length; i++) {
@@ -146,16 +169,18 @@ export default {
         colour,
       )
     },
+    drawImageCell(x, y, spritesX, spritesY) {
+      // x, y -- target coordinates in grid
+      // spritesX, spritesY -- coordinates in spritesheet
+      const cellSize = this.grid.cellSize
+      this.ctx.drawImage(
+        this.sprites,
+        spritesX * 32, spritesY * 32, 32, 32,
+        x, y, cellSize, cellSize
+      )
+    },
     drawGrid() {
       const { cellSize, cells } = this.grid
-
-      // ocean
-      for (let x = 0; x <= 10 * cellSize; x += cellSize) {
-        for (let y = 0; y <= 10 * cellSize; y += cellSize) {
-          const num = Math.floor(Math.random() * 4)
-          this.ctx.drawImage(this.sprites, num * 32, 0, 32, 32, x, y, cellSize, cellSize)
-        }
-      }
 
       this.ctx.strokeStyle = 'white'
       this.ctx.lineWidth = 1
