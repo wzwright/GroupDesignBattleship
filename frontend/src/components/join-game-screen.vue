@@ -11,7 +11,7 @@
 </template>
 
 <script>
-import textInput from './textInput.vue'
+import textInput from './text-input.vue'
 
 export default {
   name: 'joinScreen',
