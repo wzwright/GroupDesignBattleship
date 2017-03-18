@@ -34,7 +34,19 @@ export default {
   },
   computed: {
     ships() {
-      return this.$store.state.player.ships
+      const ships = this.$store.state.player.ships
+      let grid = []
+      for (const key in ships) {
+        const ship = ships[key]
+        if (typeof ship.start !== 'undefined') {
+          const { x: x1, y: y1 } = ship.start
+          const { x: x2, y: y2 } = ship.end
+
+          grid.push([x1, y1, x2, y2])
+        }
+      }
+
+      return grid
     },
   },
   methods: {
@@ -48,19 +60,8 @@ export default {
       )
     },
     submitGrid() {
-      let grid = []
-      for (const key in this.ships) {
-        const ship = this.ships[key]
-        if (typeof ship.start !== 'undefined') {
-          const { x: x1, y: y1 } = ship.start
-          const { x: x2, y: y2 } = ship.end
-
-          grid.push([x1, y1, x2, y2])
-        }
-      }
-
       this.$store.dispatch('submitGrid', {
-        grid,
+        grid: this.ships,
         okCallback: () => {
           this.$emit('changeScreen', 'waitingScreen')
         },

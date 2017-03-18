@@ -23,8 +23,8 @@ export default {
   },
   props: {
     ships: {
-      type: Object,
-      default: () => {},
+      type: Array,
+      default: () => [],
     },
     bombsOK: {
       type: Array,
@@ -101,25 +101,19 @@ export default {
     },
     drawShips() {
       const cellSize = this.grid.cellSize
-      for (const key in this.ships) {
-        const ship = this.ships[key]
-        if (ship.start !== undefined) {
-          const { x: x1, y: y1 } = ship.start
-          const { x: x2, y: y2 } = ship.end
-
-          if (x1 === x2) {
-            // horizontal ship
-            for (let y = y1; y <= y2; y++) {
-              this.drawImageCell(x1, y, 0, 1)
-            }
-          } else {
-            // vertical ship
-            for (let x = x1; x <= x2; x++) {
-              this.drawImageCell(x, y1, 0, 1)
-            }
+      this.ships.forEach(([x1, y1, x2, y2]) => {
+        if (x1 === x2) {
+          // horizontal ship
+          for (let y = y1; y <= y2; y++) {
+            this.drawImageCell(x1, y, 0, 1)
+          }
+        } else {
+          // vertical ship
+          for (let x = x1; x <= x2; x++) {
+            this.drawImageCell(x, y1, 0, 1)
           }
         }
-      }
+      })
     },
     drawOcean() {
       const cellSize = this.grid.cellSize

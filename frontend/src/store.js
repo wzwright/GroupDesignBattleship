@@ -24,6 +24,7 @@ export default new Vuex.Store({
         submarine: {},
         destroyer: {},
       },
+      grid: [],
       bombs: [],
     },
     opponent: {
@@ -71,6 +72,9 @@ export default new Vuex.Store({
     },
     setBombedPositions(state, bombs) {
       Vue.set(state.player, 'bombs', bombs)
+    },
+    setPlayerShips(state, grid) {
+      Vue.set(state.player, 'grid', grid)
     },
     setOpponentShips(state, grid) {
       Vue.set(state.opponent, 'grid', grid)
@@ -139,7 +143,8 @@ export default new Vuex.Store({
         },
       )
     },
-    submitGrid({ state }, { grid, okCallback, errorCallback }) {
+    submitGrid({ commit, state }, { grid, okCallback, errorCallback }) {
+      commit('setPlayerShips', grid)
       api.submitGrid(
         state.player.ID,
         grid,

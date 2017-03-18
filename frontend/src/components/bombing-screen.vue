@@ -4,6 +4,7 @@
       <p>{{opponentNickname}}'s ships</p>
       <opponentCanvas class="bombingCanvas"
          v-on:keyup.enter.native="bombSubmit"
+         v-bind:ships="opponentShips"
          v-bind:bombsOK="bombsOK"
          v-bind:bombsFailed="bombsFailed"
          v-bind:bombTarget="bombTarget"
@@ -53,13 +54,16 @@ export default {
   },
   computed: {
     playerShips() {
-      return this.$store.state.player.ships
+      return this.$store.state.player.grid
     },
     playerBombs() {
       return this.$store.state.player.bombs
     },
     playerNickname() {
       return this.$store.state.player.nickname
+    },
+    opponentShips() {
+      return this.$store.state.opponent.grid
     },
     opponentNickname() {
       return this.$store.state.opponent.nickname
