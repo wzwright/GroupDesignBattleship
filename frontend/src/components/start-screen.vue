@@ -1,7 +1,7 @@
 <template>
   <div id="start-screen">
-      <button v-on:click="newGame">New Game</button>
-      <button v-on:click="joinGame">Join Existing Game</button>
+    <button v-on:click="newGame">New Game</button>
+    <button v-on:click="joinGame">Join Existing Game</button>
   </div>
 </template>
 

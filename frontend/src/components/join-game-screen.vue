@@ -5,7 +5,7 @@
       label="Code:"
       v-on:input="updateUserInput"
       v-on:keyup.enter.native="joinGame"
-      ></textInput>
+    ></textInput>
     <button id="joinGame" v-on:click="joinGame">Join Game</button>
   </div>
 </template>
