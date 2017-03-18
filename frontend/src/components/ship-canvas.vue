@@ -94,7 +94,7 @@ export default {
       this.drawImageCells(this.bombsFailed, 2, 1)
       if (this.bombTarget.length === 2) {
         const [x, y] = this.bombTarget
-        this.drawCell(x, y, 'rgba(255, 255, 0, 100)')
+        this.drawCell(x, y, 'rgba(255, 255, 0, 0.7)')
       }
 
       this.drawGrid()
