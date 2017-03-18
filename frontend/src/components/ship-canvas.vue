@@ -110,12 +110,12 @@ export default {
           if (x1 === x2) {
             // horizontal ship
             for (let y = y1; y <= y2; y++) {
-              this.drawImageCell(x1 * cellSize, y * cellSize, 0, 1)
+              this.drawImageCell(x1, y, 0, 1)
             }
           } else {
             // vertical ship
             for (let x = x1; x <= x2; x++) {
-              this.drawImageCell(x * cellSize, y1 * cellSize, 0, 1)
+              this.drawImageCell(x, y1, 0, 1)
             }
           }
         }
@@ -123,8 +123,8 @@ export default {
     },
     drawOcean() {
       const cellSize = this.grid.cellSize
-      for (let x = 0; x <= 10 * cellSize; x += cellSize) {
-        for (let y = 0; y <= 10 * cellSize; y += cellSize) {
+      for (let x = 0; x <= 10; x++) {
+        for (let y = 0; y <= 10; y++) {
           const num = Math.floor(Math.random() * 4)
           this.drawImageCell(x, y, num, 0)
         }
@@ -145,7 +145,7 @@ export default {
       const cellSize = this.grid.cellSize
       for (let i = 0; i < cells.length; i++) {
         let [x, y] = cells[i]
-        this.drawImageCell(x * cellSize, y * cellSize, spritesX, spritesY)
+        this.drawImageCell(x, y, spritesX, spritesY)
       }
     },
     drawCells(cells, colour) {
@@ -176,7 +176,7 @@ export default {
       this.ctx.drawImage(
         this.sprites,
         spritesX * 32, spritesY * 32, 32, 32,
-        x, y, cellSize, cellSize
+        x * cellSize, y * cellSize, cellSize, cellSize,
       )
     },
     drawGrid() {
