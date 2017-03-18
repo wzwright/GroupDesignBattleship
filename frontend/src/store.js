@@ -110,7 +110,7 @@ export default new Vuex.Store({
         },
       )
     },
-    joinGame({ dispatch, commit, state }, { gameID, nickname, okCallback, errorCallback }) {
+    joinGame({ dispatch, commit, state }, { gameID, okCallback, errorCallback }) {
       api.joinGame(
         gameID,
         state.player.nickname,
