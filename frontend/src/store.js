@@ -42,10 +42,18 @@ export default new Vuex.Store({
       Vue.set(state.player, 'ID', ID)
     },
     setPlayerNickname(state, nickname) {
-      Vue.set(state.player, 'nickname', nickname)
+      if (nickname === '') {
+        Vue.set(state.player, 'nickname', 'Anonymous')
+      } else {
+        Vue.set(state.player, 'nickname', nickname)
+      }
     },
     setOpponentNickname(state, nickname) {
-      Vue.set(state.opponent, 'nickname', nickname)
+      if (nickname === '') {
+        Vue.set(state.opponent, 'nickname', 'Anonymous')
+      } else {
+        Vue.set(state.opponent, 'nickname', nickname)
+      }
     },
     setShip(state, payload) {
       // TODO: don't allow invalid ships to be committed
