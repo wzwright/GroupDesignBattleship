@@ -54,6 +54,7 @@ export default {
     window.addEventListener('resize', this.setSize)
   },
   methods: {
+    // component methods
     setSize() {
       const width = (this.grid.cellSize * this.grid.cells) + 1
       const height = (this.grid.cellSize * this.grid.cells) + 1
@@ -81,14 +82,22 @@ export default {
       const y = Math.floor((posY - rect.top) / this.grid.cellSize)
       return { x, y }
     },
-    clearAll() {
-      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
+    // drawing methods
+    preloadSprites() {
+      return new Promise((resolve, reject) => {
+        let img = new Image()
+        img.onload = () => {
+          this.sprites = img
+          resolve()
+        }
+        img.onerror = () => reject()
+        img.src = require('./assets/sprites.png')
+      })
     },
     drawAll() {
       this.drawOcean()
       this.drawShips()
       // draw ocean again before drawing hit ships
-      // TODO: After issues #23 #25 are done this can be improved
       this.drawImageCells(this.bombsOK, 0, 0)
       this.drawImageCells(this.bombsOK, 1, 1)
       this.drawImageCells(this.bombsFailed, 2, 1)
@@ -98,6 +107,15 @@ export default {
       }
 
       this.drawGrid()
+    },
+    drawOcean() {
+      const cellSize = this.grid.cellSize
+      for (let x = 0; x <= 10; x++) {
+        for (let y = 0; y <= 10; y++) {
+          const num = Math.floor(Math.random() * 4)
+          this.drawImageCell(x, y, num, 0)
+        }
+      }
     },
     drawShips() {
       const cellSize = this.grid.cellSize
@@ -115,26 +133,6 @@ export default {
         }
       })
     },
-    drawOcean() {
-      const cellSize = this.grid.cellSize
-      for (let x = 0; x <= 10; x++) {
-        for (let y = 0; y <= 10; y++) {
-          const num = Math.floor(Math.random() * 4)
-          this.drawImageCell(x, y, num, 0)
-        }
-      }
-    },
-    preloadSprites() {
-      return new Promise((resolve, reject) => {
-        let img = new Image()
-        img.onload = () => {
-          this.sprites = img
-          resolve()
-        }
-        img.onerror = () => reject()
-        img.src = require('./assets/sprites.png')
-      })
-    },
     drawImageCells(cells, spritesX, spritesY) {
       const cellSize = this.grid.cellSize
       for (let i = 0; i < cells.length; i++) {
@@ -142,15 +140,21 @@ export default {
         this.drawImageCell(x, y, spritesX, spritesY)
       }
     },
+    drawImageCell(x, y, spritesX, spritesY) {
+      // x, y -- target coordinates in grid
+      // spritesX, spritesY -- coordinates in spritesheet
+      const cellSize = this.grid.cellSize
+      this.ctx.drawImage(
+        this.sprites,
+        spritesX * 32, spritesY * 32, 32, 32,
+        x * cellSize, y * cellSize, cellSize, cellSize,
+      )
+    },
     drawCells(cells, colour) {
       for (let i = 0; i < cells.length; i++) {
         let [x, y] = cells[i]
         this.drawCell(x, y, colour)
       }
-    },
-    drawRect(x, y, w, h, colour) {
-      this.ctx.fillStyle = colour
-      this.ctx.fillRect(x, y, w, h)
     },
     drawCell(x, y, colour) {
       if (x < 0 || x >= 10 || y < 0 || y >= 10) return
@@ -163,15 +167,9 @@ export default {
         colour,
       )
     },
-    drawImageCell(x, y, spritesX, spritesY) {
-      // x, y -- target coordinates in grid
-      // spritesX, spritesY -- coordinates in spritesheet
-      const cellSize = this.grid.cellSize
-      this.ctx.drawImage(
-        this.sprites,
-        spritesX * 32, spritesY * 32, 32, 32,
-        x * cellSize, y * cellSize, cellSize, cellSize,
-      )
+    drawRect(x, y, w, h, colour) {
+      this.ctx.fillStyle = colour
+      this.ctx.fillRect(x, y, w, h)
     },
     drawGrid() {
       const { cellSize, cells } = this.grid
