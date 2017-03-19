@@ -1,10 +1,18 @@
 <template>
-  <canvas ref="canvas" v-on:click="sendCoordToParent">
-    {{ships}}
-    {{bombsOK}}
-    {{bombsFailed}}
-    {{bombTarget}}
-  </canvas>
+  <div>
+    <div class="rightGridNumbers">
+      <span v-for="n in 10">{{n}}</span>
+    </div>
+    <canvas ref="canvas" v-on:click="sendCoordToParent">
+      {{ships}}
+      {{bombsOK}}
+      {{bombsFailed}}
+      {{bombTarget}}
+    </canvas>
+    <div class="bottomGridChars">
+      <span v-for="n in 10">{{"ABCDEFGHIJ"[n-1]}}</span>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -196,5 +204,29 @@ export default {
 <style lang="scss">
 canvas {
   border: 1px solid black;
+}
+
+$canvasSize: 10*32px;
+.rightGridNumbers {
+  text-indent: 8px;
+  float: right;
+  height: $canvasSize;
+  display: flex;
+  flex-direction: column;
+  span {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+  }
+}
+
+.bottomGridChars {
+  width: $canvasSize;
+  display: flex;
+  flex-direction: row;
+  span {
+    flex-grow: 1;
+    text-align: center;
+  }
 }
 </style>
