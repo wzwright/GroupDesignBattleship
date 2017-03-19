@@ -29,6 +29,7 @@ class Error(enum.IntEnum):
     INVALID_BOMB_TARGET = -5
     NO_OPPONENT = -6
     OUT_OF_TURN = -7
+    NICKNAME_TOO_LONG = -8
 
 class PlayerState(enum.IntEnum):
     WAIT_FOR_JOIN = 0
@@ -56,23 +57,25 @@ class Game:
 # pid -> list of (state, user_data)
 pending_notifications = {}
 
+# games managed by join_random_game, will be moved to games once full
+pending_games = {}
+
 games = {} # gid -> game
 players = {} # pid -> player
 
 
 class Player:
-    def __init__(self, pid, game, nickname):
+    def __init__(self, pid, nickname):
         self.pid = pid
-        self.gid = game.gid
+        self.gid = None
         self.grid = None # The "grid" is the set of ships, essentially
         self.nickname = nickname
-        self.set_state(PlayerState.WAIT_FOR_JOIN)
+        self.state_code = PlayerState.WAIT_FOR_JOIN
         self.ship_points = None # This is where we keep the positions
                                 # of the points of ships
         self.bomb_history = [] # list of positions we have been bombed
                                # (including repeats, successes and
                                # failures)
-        self.join(game)
 
     def opponent(self):
         "Finds the other player in this player's game"
@@ -88,6 +91,7 @@ class Player:
             return None
 
     def join(self, game):
+        self.gid = game.gid
         # When a player is created, we try to join its associated game
         if (game.pid1 is not None) and (game.pid2 is None):
             # We were the second player. Both players can now submit
@@ -199,7 +203,8 @@ cdef public new_game_result bship_logic_new_game(const char *nickname):
         newpid = random.randint(0, 2**31 -1)
     newgame = Game(newgid)
     games[newgid] = newgame
-    players[newpid] = Player(newpid, newgame, <bytes> nickname)
+    players[newpid] = Player(newpid, <bytes> nickname)
+    players[newpid].join(newgame)
     cdef new_game_result res
     res.gid = newgid
     res.pid = newpid
@@ -212,6 +217,20 @@ def new_game(nickname):
     res = bship_logic_new_game(nickname)
     return (res.gid, res.pid)
 
+cdef public int bship_logic_join_random_game(const char *nickname):
+    cdef new_game_result ng_res
+    if len(pending_games) == 0:
+        ng_res = bship_logic_new_game(nickname)
+        # this added the game to games, we want it in pending_games
+        pending_games[ng_res.gid] = games[ng_res.gid]
+        del games[ng_res.gid]
+        return ng_res.pid
+    else:
+        # there is a game available for us to join
+        (gid, game) = pending_games.popitem()
+        games[gid] = game
+        return bship_logic_join_game(gid, nickname)
+
 cdef public int bship_logic_join_game(int gid, const char *nickname):
     if gid not in games:
         return Error.NO_SUCH_GAME
@@ -220,7 +239,8 @@ cdef public int bship_logic_join_game(int gid, const char *nickname):
     newpid = random.randint(0, 2**31-1)
     while newpid in players:
         newpid = random.randint(0, 2**31 -1)
-    players[newpid] = Player(newpid, games[gid], <bytes> nickname)
+    players[newpid] = Player(newpid, <bytes> nickname)
+    players[newpid].join(games[gid])
     return newpid
 
 def join_game(gid, nickname):

@@ -106,6 +106,12 @@ new_game_result bship_logic_new_game(const char *nickname);
  * commands about this game. */
 int bship_logic_join_game(game_id,const char *nickname);
 
+/** Either creates a game and puts you in it, waiting for an opponent
+ * to join or joins a game if someone is waiting for an
+ * opponent. Returns your player ID.
+ */
+int bship_logic_join_random_game(const char* nickname);
+
 /** Get the opponent's nickname. Returns 0 on sucess, negative on
  * error. Nickname must not be modified or freed by caller. */
 int bship_logic_get_opponent_nickname(plyr_id, char **nickname);
