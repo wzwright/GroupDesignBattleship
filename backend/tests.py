@@ -1,8 +1,6 @@
 import unittest
 import bship_logic as b
 
-b.TEST = True
-
 class Nicks:
     testNick = str.encode("testNick")
     testNick2 = str.encode("testNick2")
@@ -128,7 +126,8 @@ class PlayerTests(unittest.TestCase):
         "Player.opponent doesn't assume game has correct pids"
         badgame = b.Game(1234)
         b.games[1234] = badgame
-        me = b.Player(1, badgame, Nicks.testNick)
+        me = b.Player(1, Nicks.testNick)
+        me.join(badgame)
         b.players[1] = me
         # a hacker (or something) then changes the pids so they refer
         # to no player

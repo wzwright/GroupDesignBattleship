@@ -92,7 +92,6 @@ class Player:
 
     def join(self, game):
         self.gid = game.gid
-        # When a player is created, we try to join its associated game
         if (game.pid1 is not None) and (game.pid2 is None):
             # We were the second player. Both players can now submit
             # their grids.
