@@ -25,6 +25,7 @@ export default {
       grid: {
         cellSize: 32,
         cells: 10,
+        ocean: Array.from({length: 100}, () => Math.floor(Math.random() * 4))
       },
       sprites: new Image(),
     }
@@ -118,9 +119,9 @@ export default {
     },
     drawOcean() {
       const cellSize = this.grid.cellSize
-      for (let x = 0; x <= 10; x++) {
-        for (let y = 0; y <= 10; y++) {
-          const num = Math.floor(Math.random() * 4)
+      for (let x = 0; x < 10; x++) {
+        for (let y = 0; y < 10; y++) {
+          const num = this.grid.ocean[x * 10 + y]
           this.drawImageCell(x, y, num, 0)
         }
       }
