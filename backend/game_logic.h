@@ -106,6 +106,13 @@ new_game_result bship_logic_new_game(const char *nickname);
  * commands about this game. */
 int bship_logic_join_game(game_id,const char *nickname);
 
+/** Joins a game where your opponent is an AI. A higher difficulty is
+ * harder. <=0 is the AI that bombs (0,0), 1 bombs randomly. Higher
+ * AIs implement actual strategies, see ai.pyx for more
+ * details. Returns the player ID.
+ */
+int bship_logic_join_ai_game(const char* nickname, int difficulty);
+
 /** Either creates a game and puts you in it, waiting for an opponent
  * to join or joins a game if someone is waiting for an
  * opponent. Returns your player ID.

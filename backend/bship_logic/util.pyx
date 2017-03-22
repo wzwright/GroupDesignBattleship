@@ -1,3 +1,5 @@
+import random
+
 cdef grid_to_python(grid grid):
     pygrid = []
     cdef ship ship
@@ -32,3 +34,10 @@ cdef array_to_python(int8_t* arr, int n):
     for i in range(n):
         res.append(arr[i])
     return res
+
+def gen_uniq_key(dictionary):
+    "Generates a random integer key not in dictionary"
+    newkey = random.randint(0, 2**31-1)
+    while newkey in dictionary.keys():
+        newkey = random.randint(0, 2**31-1)
+    return newkey

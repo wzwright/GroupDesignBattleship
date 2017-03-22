@@ -4,12 +4,8 @@ from libc.stdlib cimport malloc, free
 from game_logic cimport *
 
 cdef public new_game_result bship_logic_new_game(const char *nickname):
-    newgid = random.randint(0, 2**31 -1)
-    newpid = random.randint(0, 2**31 -1)
-    while newgid in games:
-        newgid = random.randint(0, 2**31 -1)
-    while newpid in players:
-        newpid = random.randint(0, 2**31 -1)
+    newgid = gen_uniq_key(games)
+    newpid = gen_uniq_key(players)
     newgame = Game(newgid)
     games[newgid] = newgame
     players[newpid] = Player(newpid, <bytes> nickname)
@@ -18,6 +14,17 @@ cdef public new_game_result bship_logic_new_game(const char *nickname):
     res.gid = newgid
     res.pid = newpid
     return res
+
+cdef public int bship_logic_join_ai_game(const char *nickname, int difficulty):
+    cdef new_game_result ng_res
+    pid = gen_uniq_key(players)
+    ai = AIPlayer.make(difficulty, pid)
+    players[pid] = ai
+    gid = gen_uniq_key(games)
+    newgame = Game(gid)
+    games[gid] = newgame
+    ai.join(newgame)
+    return bship_logic_join_game(gid, nickname)
 
 cdef public int bship_logic_join_random_game(const char *nickname):
     cdef new_game_result ng_res
@@ -38,9 +45,7 @@ cdef public int bship_logic_join_game(int gid, const char *nickname):
         return Error.NO_SUCH_GAME
     if games[gid].full():
         return Error.ALREADY_STARTED
-    newpid = random.randint(0, 2**31-1)
-    while newpid in players:
-        newpid = random.randint(0, 2**31 -1)
+    newpid = gen_uniq_key(players)
     players[newpid] = Player(newpid, <bytes> nickname)
     players[newpid].join(games[gid])
     return newpid

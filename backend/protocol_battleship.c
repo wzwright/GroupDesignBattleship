@@ -112,6 +112,17 @@ static void handle_request(struct lws *wsi, struct per_session_data__battleship 
 			DIE_ON_ERROR(ERR_NICKNAME_TOO_LONG);
 		ng_result = bship_logic_new_game(nick);
 		REPLY(croaking_json_pack("[ii]", ng_result.gid, ng_result.pid));
+	} else if(strcmp(method, "joinAIGame") == 0) {
+		EXPECT_PARAMS(2);
+		nick = json_string_value(json_array_get(params, 0));
+		if(nick == NULL)
+			nick = "";
+		if(strlen(nick) > 100)
+			DIE_ON_ERROR(ERR_NICKNAME_TOO_LONG);
+		int difficulty = json_integer_value(json_array_get(params, 1));
+		pid = bship_logic_join_ai_game(nick, difficulty);
+		DIE_ON_ERROR(pid);
+		REPLY(json_integer(pid));
 	} else if(strcmp(method, "joinRandomGame") == 0) {
 		EXPECT_PARAMS(1);
 		nick = json_string_value(json_array_get(params, 0));
