@@ -210,25 +210,24 @@ class StateTests(unittest.TestCase):
 
         # they both submit the same grid, for simplicity
         b.submit_grid(pid1, [[0,0,1,0]
-                             ,[0,1,2,1]
-                             ,[0,2,2,2]
-                             ,[0,3,3,3]
-                             ,[0,4,4,4]])
+                            ,[0,1,2,1]
+                            ,[0,2,2,2]
+                            ,[0,3,3,3]
+                            ,[0,4,4,4]])
         self.assertEqual(me.state_code, b.PlayerState.WAIT_FOR_SUBMIT)
         b.submit_grid(pid2, [[0,0,1,0]
-                             ,[0,1,2,1]
-                             ,[0,2,2,2]
-                             ,[0,3,3,3]
-                             ,[0,4,4,4]])
+                            ,[0,1,2,1]
+                            ,[0,2,2,2]
+                            ,[0,3,3,3]
+                            ,[0,4,4,4]])
         self.assertEqual(me.state_code, b.PlayerState.BOMB)
         self.assertEqual(other.state_code, b.PlayerState.WAIT_FOR_BOMB)
 
         # here, we just play out some turns, with me bombing each of
         # their ships while they bomb an empty space
-        for ship in other.grid:
-            for (x,y) in b.points_occupied(ship):
-                b.bomb_position(pid1, x, y)
-                b.bomb_position(pid2, 5, 5)
+        for (x,y) in other.ship_points:
+            b.bomb_position(pid1, x, y)
+            b.bomb_position(pid2, 5, 5)
 
         # game should be over
         self.assertEqual(me.state_code, b.PlayerState.GAME_OVER)
@@ -296,3 +295,47 @@ class BombTests(unittest.TestCase):
 
         self.assertEqual(b.get_bombed_positions(pid1), (0, 1, [0,4]))
         self.assertEqual(b.get_bombed_positions(pid2), (0, 2, [0,0,0,1]))
+
+class AITests(unittest.TestCase):
+    "Tests behaviour of AIs"
+    def setUp(self):
+        b.players = {}
+        b.games = {}
+
+    def test_example_ai_loses(self):
+        "Example AI can play a game (and lose)"
+        pid = b.join_ai_game(b"", 0)
+        self.assertTrue(pid in b.players)
+        me = b.players[pid]
+        other = me.opponent()
+        self.assertNotEqual(other, None)
+        self.assertEqual(me.state_code, b.PlayerState.SUBMIT_GRID)
+        self.assertEqual(other.state_code, b.PlayerState.WAIT_FOR_SUBMIT)
+        b.submit_grid(pid, [[0,0,1,0]
+                           ,[0,1,2,1]
+                           ,[0,2,2,2]
+                           ,[0,3,3,3]
+                           ,[0,4,4,4]])
+        for (x,y) in other.ship_points:
+            b.bomb_position(pid, x, y)
+        self.assertTrue(other.dead())
+        self.assertEqual(other.state_code, b.PlayerState.GAME_OVER)
+        self.assertEqual(me.state_code, b.PlayerState.GAME_OVER)
+
+    def test_random_ai_wins(self):
+        "Random AI wins if we don't bomb his ships"
+        pid = b.join_ai_game(b"", 1)
+        self.assertTrue(pid in b.players)
+        me = b.players[pid]
+        other = me.opponent()
+        self.assertNotEqual(other, None)
+        self.assertEqual(me.state_code, b.PlayerState.SUBMIT_GRID)
+        self.assertEqual(other.state_code, b.PlayerState.WAIT_FOR_SUBMIT)
+        b.submit_grid(pid, [[0,0,1,0]
+                           ,[0,1,2,1]
+                           ,[0,2,2,2]
+                           ,[0,3,3,3]
+                           ,[0,4,4,4]])
+        while not me.dead():
+            b.bomb_position(pid, 0, 0)
+        # if this terminates, the test passes

@@ -6,6 +6,12 @@ def new_game(nickname):
     res = bship_logic_new_game(nickname)
     return (res.gid, res.pid)
 
+def join_ai_game(nickname, difficulty):
+    return bship_logic_join_ai_game(nickname, difficulty)
+
+def join_random_game(nickname):
+    return bship_logic_join_random_game(nickname)
+
 def join_game(gid, nickname):
     return bship_logic_join_game(gid, nickname)
 
