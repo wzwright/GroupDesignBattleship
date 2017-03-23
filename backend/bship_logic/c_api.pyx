@@ -1,7 +1,6 @@
 cimport cython, cpython
 from libc.stdint cimport int8_t
 from libc.stdlib cimport malloc, free
-from game_logic cimport *
 
 cdef public new_game_result bship_logic_new_game(const char *nickname):
     newgid = gen_uniq_key(games)
