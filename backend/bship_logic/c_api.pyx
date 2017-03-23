@@ -76,10 +76,16 @@ cdef public int bship_logic_submit_grid(int pid, grid rgrid):
     me.set_grid(grid)
     opponentstate = me.opponent().state_code
     if opponentstate == PlayerState.WAIT_FOR_SUBMIT:
-        # if they were waiting for us, tell them to proceed
-        me.opponent().set_state(PlayerState.BOMB)
         # we will wait for them to bomb now
         me.set_state(PlayerState.WAIT_FOR_BOMB)
+
+        # Note: it is important that we set our state before the
+        # opponent's because if the opponent is an AI, setting their
+        # state will immediately cause them to try to execute their
+        # action. If we don't set our state first, the game will be 
+        # in an invalid state when the AI sees it, so it will behave 
+        # unexpectedly.
+        me.opponent().set_state(PlayerState.BOMB)
     else:
         # if they are not waiting for us, this means they are still
         # submitting, so we should wait for them
