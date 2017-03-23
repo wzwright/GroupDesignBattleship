@@ -63,7 +63,13 @@ class RandomAIPlayer(AIPlayer):
         bship_logic_submit_grid(self.pid, python_to_grid(mygrid))
 
     def ai_bomb(self):
-        bship_logic_bomb_position(self.pid, random.randint(0,9), random.randint(0,9))
+        to_bomb = (random.randint(0,9), random.randint(0,9))
+        opp = self.opponent()
+        # we don't want to repeat positions
+        while to_bomb in opp.bomb_history:
+            to_bomb = (random.randint(0,9), random.randint(0,9))
+        bship_logic_bomb_position(self.pid, to_bomb[0], to_bomb[1])
 
     def ai_cleanup(self):
         pass
+
