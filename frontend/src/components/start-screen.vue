@@ -29,6 +29,7 @@
     ></textInput>
     <button v-on:click="newGame">New Game</button>
     <button v-on:click="joinGame">Join Existing Game</button>
+    <button v-on:click="serverGame">Play against the server</button>
   </div>
 </template>
 
@@ -64,6 +65,10 @@ export default {
       this.$store.commit('setPlayerNickname', this.nickname)
       this.$emit('changeScreen', 'joinGame')
     },
+    serverGame() {
+      this.$store.commit('setPlayerNickname', this.nickname)
+      this.$emit('changeScreen', 'serverGame')
+    }
   },
 }
 </script>

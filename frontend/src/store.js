@@ -205,6 +205,20 @@ export default new Vuex.Store({
         },
       )
     },
+    joinAIGame({ dispatch, commit, state }, { AILevel, okCallback, errorCallback }) {
+      api.joinAIGame(
+        state.player.nickname,
+        AILevel,
+        (playerID) => {
+          commit('setPlayerID', playerID)
+          if (typeof okCallback === 'function') okCallback()
+        },
+        (e) => {
+          console.error(`Error joining game: ${e.message}`)
+          if (typeof errorCallback === 'function') errorCallback()
+        },
+      )
+    },
     submitGrid({ commit, state }, { grid, okCallback, errorCallback }) {
       commit('setPlayerShips', grid)
       api.submitGrid(

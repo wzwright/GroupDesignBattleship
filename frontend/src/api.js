@@ -64,6 +64,11 @@ export function getOpponentNickname(playerID, okCallback, errorCallback) {
   doRPC('getOpponentNickname', [playerID], okCallback, errorCallback)
 }
 
+// Takes a nickname, result is a playerID
+export function joinAIGame(nickname, AILevel, okCallback, errorCallback) {
+  doRPC('joinAIGame', [nickname, AILevel], okCallback, errorCallback)
+}
+
 /*
  * Takes a playerID and an array like [[0,2,3,2], [3,7,3,9], ...] of 5
  * elements (for 5 ships). Result is null.

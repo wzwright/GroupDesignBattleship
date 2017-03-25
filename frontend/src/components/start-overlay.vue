@@ -24,6 +24,7 @@
       <startScreen v-if="show === 'start'" v-on:changeScreen="changeScreen"></startScreen>
       <newGameScreen v-if="show === 'newGame'" v-on:changeScreen="changeScreen"></newGameScreen>
       <joinGameScreen v-if="show === 'joinGame'" v-on:changeScreen="changeScreen"></joinGameScreen>
+      <serverGameScreen v-if="show === 'serverGame'" v-on:changeScreen="changeScreen"></serverGameScreen>
     </div>
   </div>
 </template>
@@ -32,6 +33,7 @@
 import startScreen from './start-screen.vue'
 import newGameScreen from './new-game-screen.vue'
 import joinGameScreen from './join-game-screen.vue'
+import serverGameScreen from './server-game-screen.vue'
 
 export default {
   name: 'overlay',
@@ -44,6 +46,7 @@ export default {
     startScreen,
     newGameScreen,
     joinGameScreen,
+    serverGameScreen,
   },
   methods: {
     changeScreen(screen) {
