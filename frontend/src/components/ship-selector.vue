@@ -63,7 +63,7 @@ export default {
       this.$store.dispatch('submitGrid', {
         grid: this.ships,
         okCallback: () => {
-          this.$emit('changeScreen', 'waitingScreen')
+          this.$emit('changeScreen', 'bombingScreen')
         },
       })
     },

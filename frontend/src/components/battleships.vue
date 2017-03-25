@@ -2,8 +2,6 @@
   <div>
     <shipSelector v-if="show === 'shipSelector'"
       v-on:changeScreen="changeScreen"></shipSelector>
-    <waitingScreen v-if="show === 'waitingScreen'"
-      v-on:changeScreen="changeScreen"></waitingScreen>
     <bombingScreen v-if="show === 'bombingScreen'"
       v-on:changeScreen="changeScreen"></bombingScreen>
   </div>
@@ -11,14 +9,12 @@
 
 <script>
 import shipSelector from './ship-selector.vue'
-import waitingScreen from './waiting-screen.vue'
 import bombingScreen from './bombing-screen.vue'
 
 export default {
   name: 'battleships',
   components: {
     shipSelector,
-    waitingScreen,
     bombingScreen,
   },
   data() {

@@ -26,7 +26,7 @@
 
     <div class="message">
       <p v-if="phase === 'bomb'">Click on a place on your opponent's board and click 'bomb' to bomb them!</p>
-      <p v-if="phase === 'wait'">Waiting for your opponent to make a move.</p>
+      <p v-if="phase === 'wait'">Waiting for your opponent...</p>
       <p v-if="phase === 'gameOver' && won">You win!</p>
       <p v-if="phase === 'gameOver' && !won">You lose!</p>
     </div>
