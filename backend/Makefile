@@ -1,13 +1,15 @@
 #!/usr/bin/make -rf
 all: lws install-plugin
 
+PREFIX ?= /usr
+
 make-datadir:
 	mkdir -p build/datadir
 	cp -rv example-config/ build/datadir/config
 
 lws: make-datadir
-	cd build && cmake ../libwebsockets -DLWS_WITH_LWSWS=1 -DCMAKE_INSTALL_PREFIX:PATH=${PWD}/build/datadir -DCMAKE_BUILD_TYPE=DEBUG
-	cd build && make
+	cd build && CFLAGS=-Wno-error cmake ../libwebsockets -DLWS_WITH_LWSWS=1 -DCMAKE_BUILD_TYPE=DEBUG -DCMAKE_INSTALL_PREFIX:PATH=/usr
+	cd build && make DESTDIR=${PWD}/datadir PREFIX=
 
 install-plugin: make-datadir libprotocol_battleship.so
 	install -d build/datadir/share/libwebsockets-test-server/plugins
@@ -43,10 +45,35 @@ clean:
 	rm -f protocol_battleship.o libprotocol_battleship.so bship_logic.o bship_logic.c bship_logic.h dummy_functions.o bship_logic.so
 
 run:
-	build/bin/lwsws -c build/datadir/config
+	lwsws -c /etc/battleship
 
 valgrind:
-	LD_PRELOAD=build/datadir/share/libwebsockets-test-server/plugins/libprotocol_battleship.so valgrind --leak-check=full --read-var-info=yes --track-origins=yes build/bin/lwsws -c build/datadir/config
+	LD_PRELOAD=/usr/share/libwebsockets-test-server/plugins/libprotocol_battleship.so valgrind --leak-check=full --read-var-info=yes --track-origins=yes /usr/bin/lwsws -c /etc/battleship
 
 test: bship_logic.so
 	python3 -m unittest tests -v
+
+frontend:
+	cd ../frontend && npm run build
+
+install: frontend
+	install -d $(DESTDIR)/etc/battleship
+	cp -drv --no-preserve=ownership build/datadir/config/conf* $(DESTDIR)/etc/battleship/
+	install -D build/datadir/share/libwebsockets-test-server/plugins/libprotocol_battleship.so $(DESTDIR)$(PREFIX)/share/libwebsockets-test-server/plugins/libprotocol_battleship.so 
+	install -D build/bin/lwsws $(DESTDIR)$(PREFIX)/bin/lwsws
+	install -D battleship.service $(DESTDIR)/lib/systemd/system/battleship.service
+	install -D build/lib/libwebsockets.so.9 $(DESTDIR)$(PREFIX)/lib/libwebsockets.so.9
+	install -D ../frontend/index.html $(DESTDIR)$(PREFIX)/share/battleship/index.html
+	cp -drv --no-preserve=ownership ../frontend/dist $(DESTDIR)$(PREFIX)/share/battleship/
+
+# This is only for manual use: making the Debian package doesn't use this
+uninstall:
+	rm -rf $(DESTDIR)$(PREFIX)/share/battleship
+	rm -rf $(DESTDIR)/etc/battleship
+	rm -f $(DESTDIR)$(PREFIX)/bin/lwsws
+	rm -f $(DESTDIR)$(PREFIX)/share/libwebsockets-test-server/plugins/libprotocol_battleship.so
+	cd $(DESTDIR)$(PREFIX)/share; \
+	rmdir --ignore-fail-on-non-empty -p libwebsockets-test-server/plugins
+	rm -f $(DESTDIR)$(PREFIX)/lib/libwebsockets.so.9
+	rm -f $(DESTDIR)/lib/systemd/system/battleship.service
+
