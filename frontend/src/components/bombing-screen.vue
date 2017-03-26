@@ -15,6 +15,7 @@
         v-on:click="bombSubmit"
       >Bomb!</button>
       <p>Turn Number: {{turnNumber}}</p>
+      <p>Successful hits: {{playerSuccessfulBombs}}</p>
     </div>
     <div class="shipContainer playerShipContainer">
       <p>{{playerNickname}}'s ships</p>
@@ -23,6 +24,7 @@
          v-bind:bombsOK="playerBombsOK"
          v-bind:bombsFailed="playerBombsFailed"
       ></playerCanvas>
+      <p>Successful hits: {{opponentSuccessfulBombs}}</p>
     </div>
     <div class="message">
       <p v-if="phase === 'bomb'">Click on a place on your opponent's board and click 'bomb' to bomb them!</p>
@@ -53,6 +55,8 @@ export default {
       playerBombsFailed: [],
       won: false,
       turnNumber: 1,
+      playerSuccessfulBombs: 0,
+      opponentSuccessfulBombs: 0,
     }
   },
   computed: {
@@ -82,6 +86,7 @@ export default {
         okCallback: (bombSucceeded) => {
           this.turnNumber++
           if (bombSucceeded) {
+          	this.playerSuccessfulBombs++
             this.bombsOK.push(this.bombTarget)
             this.$store.dispatch('getGameEnd', {
               okCallback: ({ gameOver, won }) => {
@@ -115,6 +120,7 @@ export default {
                     this.phase = 'gameOver'
                   } else {
                     this.phase = 'bomb'
+                    this.opponentSuccessfulBombs = this.playerBombsOK.length
                   }
                 },
               })
