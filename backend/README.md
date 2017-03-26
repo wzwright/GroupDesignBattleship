@@ -2,8 +2,24 @@
 
 1. Install libjansson, Cython and Python 3
 2. Run `make` to build the server.
-3. Run `make run` to run the server.
-4. Start talking to `ws://localhost:8080/`, e.g. using [telsocket](http://telsocket.org/)
+3. Run `make install` to install the server to your system (as root).
+4. Run `make run` to run the server.
+5. Start talking to `ws://localhost:8080/`, e.g. using [telsocket](http://telsocket.org/)
+
+(Run `make uninstall` to uninstall the server)
+
+# Making a Debian package
+
+1. Install fakeroot and debhelper.
+2. Run `make deb`
+3. The finished .deb file will be placed in ..
+
+# Installing on a production server
+
+1. `dpkg -i` the deb package
+2. `apt -f install` to install dependencies
+3. Enable/start the battleship systemd service
+4. Serve `/usr/share/battleship` on a web server
 
 # Testing
 
