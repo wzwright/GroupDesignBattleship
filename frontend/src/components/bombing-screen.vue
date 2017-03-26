@@ -16,6 +16,7 @@
       >Bomb!</button>
       <p>Turn Number: {{turnNumber}}</p>
       <p>Successful hits: {{playerSuccessfulBombs}}</p>
+      <p>Hit Rate: {{playerHitRate}}%</p>
       <p>Left to hit: {{17-playerSuccessfulBombs}}</p>
     </div>
     <div class="shipContainer playerShipContainer">
@@ -26,6 +27,7 @@
          v-bind:bombsFailed="playerBombsFailed"
       ></playerCanvas>
       <p>Successful hits: {{opponentSuccessfulBombs}}</p>
+      <p>Hit Rate: {{opponentHitRate}}%</p>
       <p>Left to hit: {{17-opponentSuccessfulBombs}}</p>
     </div>
     <div class="message">
@@ -59,6 +61,8 @@ export default {
       turnNumber: 0,
       playerSuccessfulBombs: 0,
       opponentSuccessfulBombs: 0,
+      playerHitRate: 100,
+      opponentHitRate: 100,
     }
   },
   computed: {
@@ -88,6 +92,7 @@ export default {
         okCallback: (bombSucceeded) => {
           if (bombSucceeded) {
           	this.playerSuccessfulBombs++
+          	this.playerHitRate = (this.playerSuccessfulBombs/this.turnNumber)*100
             this.bombsOK.push(this.bombTarget)
             this.$store.dispatch('getGameEnd', {
               okCallback: ({ gameOver, won }) => {
@@ -101,6 +106,7 @@ export default {
             })
           } else {
             this.bombsFailed.push(this.bombTarget)
+            this.playerHitRate = (this.playerSuccessfulBombs/this.turnNumber)*100
             this.wait()
           }
         },
@@ -123,6 +129,9 @@ export default {
                     this.phase = 'bomb'
                     this.opponentSuccessfulBombs = this.playerBombsOK.length
                     this.turnNumber++
+                    if ((this.opponentSuccessfulBombs !== 0) || (this.playerBombsFailed.length !== 0)){
+                    	this.opponentHitRate = (this.opponentSuccessfulBombs/(this.playerBombsFailed.length+this.opponentSuccessfulBombs))*100
+                    }
                   }
                 },
               })
