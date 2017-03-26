@@ -3,7 +3,8 @@ const LongWebSocket = require('longwebsocket')
 
 const remote = new JRPC({ client: true })
 const ws = new LongWebSocket({
-  url: 'wss://bship.ieval.ro:8080/',
+  // defined in webpack
+  url: API_URL,
   protocols: [],
   onopen() {
     remote.setTransmitter((msg, next) => {

@@ -49,12 +49,18 @@ module.exports = {
   },
   devServer: {
     historyApiFallback: true,
-    noInfo: true
+    noInfo: true,
+    port: 8081
   },
   performance: {
     hints: false
   },
-  devtool: '#eval-source-map'
+  devtool: '#eval-source-map',
+  plugins: [
+    new webpack.DefinePlugin({
+      API_URL: process.env.USE_LOCAL_SERVER ? '"ws://localhost:8080/"' :'"wss://bship.ieval.ro:8080/"'
+    })
+  ]
 }
 
 if (process.env.NODE_ENV === 'production') {

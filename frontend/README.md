@@ -9,9 +9,10 @@
 ## development mode
 run `npm run dev`. You can see what this command does by reading `package.json`.
 
-This will run a local server and should automatically open a browser window pointing to localhost:8080, where you will be able to see a preview of the game. Errors can be seen by opening up the [browser console](http://webmasters.stackexchange.com/questions/8525/how-to-open-the-javascript-console-in-different-browsers).
+This will run a local server and should automatically open a browser window pointing to localhost:8081, where you will be able to see a preview of the game. Errors can be seen by opening up the [browser console](http://webmasters.stackexchange.com/questions/8525/how-to-open-the-javascript-console-in-different-browsers).
 
 `npm run d` does a similar thing except it doesn't open a browser window.
+`npm run local` uses the local battleships server (ws://localhost:8080/) instead of our production server.
 
 ## production mode
 run `npm run build`
