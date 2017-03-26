@@ -77,3 +77,5 @@ uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/lib/libwebsockets.so.9
 	rm -f $(DESTDIR)/lib/systemd/system/battleship.service
 
+deb:
+	fakeroot debian/rules clean binary
