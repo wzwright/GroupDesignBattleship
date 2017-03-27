@@ -1,5 +1,7 @@
 #!/usr/bin/make -rf
-all: lws install-plugin frontend
+all: lws install-plugin
+
+.PHONY: all make-datadir lws install-plugin install uninstall valgrind test run
 
 PREFIX ?= /usr
 
@@ -53,9 +55,6 @@ valgrind:
 test: bship_logic.so
 	python3 -m unittest tests -v
 
-frontend:
-	cd ../frontend && npm install && npm run build
-
 install:
 	install -d $(DESTDIR)/etc/battleship
 	cp -drv --no-preserve=ownership build/datadir/config/conf* $(DESTDIR)/etc/battleship/
@@ -66,9 +65,7 @@ install:
 	install -m0644 -D ../frontend/index.html $(DESTDIR)$(PREFIX)/share/battleship/index.html
 	cp -drv --no-preserve=ownership ../frontend/dist $(DESTDIR)$(PREFIX)/share/battleship/
 
-# This is only for manual use: making the Debian package doesn't use this
 uninstall:
-	rm -rf $(DESTDIR)$(PREFIX)/share/battleship
 	rm -rf $(DESTDIR)/etc/battleship
 	rm -f $(DESTDIR)$(PREFIX)/bin/lwsws
 	rm -f $(DESTDIR)$(PREFIX)/share/libwebsockets-test-server/plugins/libprotocol_battleship.so
@@ -77,5 +74,3 @@ uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/lib/libwebsockets.so.9
 	rm -f $(DESTDIR)/lib/systemd/system/battleship.service
 
-deb:
-	fakeroot debian/rules clean binary
