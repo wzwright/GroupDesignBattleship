@@ -1,5 +1,5 @@
 #!/usr/bin/make -rf
-all: lws install-plugin
+all: lws install-plugin frontend
 
 PREFIX ?= /usr
 
@@ -8,7 +8,7 @@ make-datadir:
 	cp -rv example-config/ build/datadir/config
 
 lws: make-datadir
-	cd build && CFLAGS=-Wno-error cmake ../libwebsockets -DLWS_WITH_LWSWS=1 -DCMAKE_BUILD_TYPE=DEBUG -DCMAKE_INSTALL_PREFIX:PATH=/usr
+	cd build && CFLAGS=-Wno-error cmake ../libwebsockets -DLWS_WITH_LWSWS=1 -DCMAKE_BUILD_TYPE=DEBUG -DCMAKE_INSTALL_PREFIX:PATH=/usr -DCMAKE_SKIP_RPATH=1
 	cd build && make DESTDIR=${PWD}/datadir PREFIX=
 
 install-plugin: make-datadir libprotocol_battleship.so
@@ -54,16 +54,16 @@ test: bship_logic.so
 	python3 -m unittest tests -v
 
 frontend:
-	cd ../frontend && npm run build
+	cd ../frontend && npm install && npm run build
 
-install: frontend
+install:
 	install -d $(DESTDIR)/etc/battleship
 	cp -drv --no-preserve=ownership build/datadir/config/conf* $(DESTDIR)/etc/battleship/
 	install -D build/datadir/share/libwebsockets-test-server/plugins/libprotocol_battleship.so $(DESTDIR)$(PREFIX)/share/libwebsockets-test-server/plugins/libprotocol_battleship.so 
 	install -D build/bin/lwsws $(DESTDIR)$(PREFIX)/bin/lwsws
-	install -D battleship.service $(DESTDIR)/lib/systemd/system/battleship.service
+	install -m0644 -D battleship.service $(DESTDIR)/lib/systemd/system/battleship.service
 	install -D build/lib/libwebsockets.so.9 $(DESTDIR)$(PREFIX)/lib/libwebsockets.so.9
-	install -D ../frontend/index.html $(DESTDIR)$(PREFIX)/share/battleship/index.html
+	install -m0644 -D ../frontend/index.html $(DESTDIR)$(PREFIX)/share/battleship/index.html
 	cp -drv --no-preserve=ownership ../frontend/dist $(DESTDIR)$(PREFIX)/share/battleship/
 
 # This is only for manual use: making the Debian package doesn't use this
