@@ -5,13 +5,13 @@ all: lws install-plugin
 
 PREFIX ?= /usr
 
-make-datadir:
+make-datadir: example-config
 	mkdir -p build/datadir
 	cp -rv example-config/ build/datadir/config
 
 lws: make-datadir
-	cd build && CFLAGS=-Wno-error cmake ../libwebsockets -DLWS_WITH_LWSWS=1 -DCMAKE_BUILD_TYPE=DEBUG -DCMAKE_INSTALL_PREFIX:PATH=/usr -DCMAKE_SKIP_RPATH=1
-	cd build && make DESTDIR=${PWD}/datadir PREFIX=
+	cd build && CFLAGS=-Wno-error cmake ../libwebsockets -DLWS_WITH_LWSWS=1 -DCMAKE_BUILD_TYPE=DEBUG -DCMAKE_INSTALL_PREFIX:PATH=${PWD}/build/datadir -DCMAKE_SKIP_RPATH=1
+	cd build && make PREFIX=${PWD}/build/datadir
 
 install-plugin: make-datadir libprotocol_battleship.so
 	install -d build/datadir/share/libwebsockets-test-server/plugins
@@ -47,10 +47,10 @@ clean:
 	rm -f protocol_battleship.o libprotocol_battleship.so bship_logic.o bship_logic.c bship_logic.h dummy_functions.o bship_logic.so
 
 run:
-	lwsws -c /etc/battleship
+	LD_LIBRARY_PATH=build/lib build/bin/lwsws -c build/datadir/config
 
 valgrind:
-	LD_PRELOAD=/usr/share/libwebsockets-test-server/plugins/libprotocol_battleship.so valgrind --leak-check=full --read-var-info=yes --track-origins=yes /usr/bin/lwsws -c /etc/battleship
+	LD_LIBRARY_PATH=build/lib LD_PRELOAD=build/datadir/share/libwebsockets-test-server/plugins/libprotocol_battleship.so valgrind --leak-check=full --read-var-info=yes --track-origins=yes build/bin/lwsws -c build/datadir/config
 
 test: bship_logic.so
 	python3 -m unittest tests -v
@@ -62,8 +62,6 @@ install:
 	install -D build/bin/lwsws $(DESTDIR)$(PREFIX)/bin/lwsws
 	install -m0644 -D battleship.service $(DESTDIR)/lib/systemd/system/battleship.service
 	install -D build/lib/libwebsockets.so.9 $(DESTDIR)$(PREFIX)/lib/libwebsockets.so.9
-	install -m0644 -D ../frontend/index.html $(DESTDIR)$(PREFIX)/share/battleship/index.html
-	cp -drv --no-preserve=ownership ../frontend/dist $(DESTDIR)$(PREFIX)/share/battleship/
 
 uninstall:
 	rm -rf $(DESTDIR)/etc/battleship
