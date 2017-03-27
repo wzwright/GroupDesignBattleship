@@ -1,17 +1,17 @@
-#!/usr/bin/make -rf
+#!/usr/bin/make -erf
 all: lws install-plugin
 
 .PHONY: all make-datadir lws install-plugin install uninstall valgrind test run
 
-PREFIX ?= /usr
+PREFIX ?= ${PWD}/build/datadir
 
 make-datadir: example-config
 	mkdir -p build/datadir
 	cp -rv example-config/ build/datadir/config
 
 lws: make-datadir
-	cd build && CFLAGS=-Wno-error cmake ../libwebsockets -DLWS_WITH_LWSWS=1 -DCMAKE_BUILD_TYPE=DEBUG -DCMAKE_INSTALL_PREFIX:PATH=${PWD}/build/datadir -DCMAKE_SKIP_RPATH=1
-	cd build && make PREFIX=${PWD}/build/datadir
+	cd build && CFLAGS=-Wno-error cmake ../libwebsockets -DLWS_WITH_LWSWS=1 -DCMAKE_BUILD_TYPE=DEBUG -DCMAKE_INSTALL_PREFIX:PATH=$(PREFIX) -DCMAKE_SKIP_RPATH=1
+	cd build && make PREFIX=$(PREFIX)
 
 install-plugin: make-datadir libprotocol_battleship.so
 	install -d build/datadir/share/libwebsockets-test-server/plugins
@@ -57,8 +57,8 @@ test: bship_logic.so
 
 install:
 	install -d $(DESTDIR)/etc/battleship
-	cp -drv --no-preserve=ownership build/datadir/config/conf* $(DESTDIR)/etc/battleship/
-	install -D build/datadir/share/libwebsockets-test-server/plugins/libprotocol_battleship.so $(DESTDIR)$(PREFIX)/share/libwebsockets-test-server/plugins/libprotocol_battleship.so 
+	cp -drv --no-preserve=ownership example-config/conf* $(DESTDIR)/etc/battleship/
+	install -D libprotocol_battleship.so $(DESTDIR)$(PREFIX)/share/libwebsockets-test-server/plugins/libprotocol_battleship.so
 	install -D build/bin/lwsws $(DESTDIR)$(PREFIX)/bin/lwsws
 	install -m0644 -D battleship.service $(DESTDIR)/lib/systemd/system/battleship.service
 	install -D build/lib/libwebsockets.so.9 $(DESTDIR)$(PREFIX)/lib/libwebsockets.so.9
