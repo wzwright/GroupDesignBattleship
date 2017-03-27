@@ -19,6 +19,8 @@ run `npm run build`
 
 This builds the files to the `dist/` directory. However, you won't be able to go straight to the file path in browser -- you have to run a local webserver (e.g. via `python -m http.server 8080` and opening up localhost:8080). This will likely only be used in production on our live server.
 
+`npm run buildLocal` uses the local battleships server (ws://localhost:8080/) instead of our production server.
+
 ## vue-devtools
 
 If you use the chrome extension [vue-devtools](https://chrome.google.com/webstore/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd), when you open up the console (<kbd>F12</kbd>) you can find a Vue tab. Here you can select components to see their current data and props, as well as events and Vuex state.
