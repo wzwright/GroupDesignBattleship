@@ -1,6 +1,6 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: battleship
-Source: <url://example.com>
+Source: <https://github.com/wzwright/GroupDesignBattleship>
 #
 # Please double check copyright with the licensecheck(1) command.
 
