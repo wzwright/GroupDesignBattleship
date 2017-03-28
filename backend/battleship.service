@@ -1,6 +1,5 @@
 [Unit]
 Description=Battleship WebSockets Server
-After=syslog.target
 
 [Service]
 ExecStart=/usr/bin/lwsws -c /etc/battleship
