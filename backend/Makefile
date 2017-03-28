@@ -61,7 +61,6 @@ install:
 	install -D libprotocol_battleship.so $(DESTDIR)$(PREFIX)/share/libwebsockets-test-server/plugins/libprotocol_battleship.so
 	install -D build/bin/lwsws $(DESTDIR)$(PREFIX)/bin/lwsws
 	install -m0644 -D battleship.service $(DESTDIR)/lib/systemd/system/battleship.service
-	install -D build/lib/libwebsockets.so.9 $(DESTDIR)$(PREFIX)/lib/libwebsockets.so.9
 
 uninstall:
 	rm -rf $(DESTDIR)/etc/battleship
@@ -69,6 +68,5 @@ uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/share/libwebsockets-test-server/plugins/libprotocol_battleship.so
 	cd $(DESTDIR)$(PREFIX)/share; \
 	rmdir --ignore-fail-on-non-empty -p libwebsockets-test-server/plugins
-	rm -f $(DESTDIR)$(PREFIX)/lib/libwebsockets.so.9
 	rm -f $(DESTDIR)/lib/systemd/system/battleship.service
 
