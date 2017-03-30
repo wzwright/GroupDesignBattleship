@@ -58,14 +58,14 @@ test: bship_logic.so
 install:
 	install -d $(DESTDIR)/etc/battleship
 	cp -drv --no-preserve=ownership example-config/conf* $(DESTDIR)/etc/battleship/
-	install -D libprotocol_battleship.so $(DESTDIR)$(PREFIX)/share/libwebsockets-test-server/plugins/libprotocol_battleship.so
+	install -D libprotocol_battleship.so $(DESTDIR)$(PREFIX)/lib/libwebsockets-test-server/plugins/libprotocol_battleship.so
 	install -D build/bin/lwsws $(DESTDIR)$(PREFIX)/bin/lwsws
 	install -m0644 -D battleship.service $(DESTDIR)/lib/systemd/system/battleship.service
 
 uninstall:
 	rm -rf $(DESTDIR)/etc/battleship
 	rm -f $(DESTDIR)$(PREFIX)/bin/lwsws
-	rm -f $(DESTDIR)$(PREFIX)/share/libwebsockets-test-server/plugins/libprotocol_battleship.so
+	rm -f $(DESTDIR)$(PREFIX)/lib/libwebsockets-test-server/plugins/libprotocol_battleship.so
 	cd $(DESTDIR)$(PREFIX)/share; \
 	rmdir --ignore-fail-on-non-empty -p libwebsockets-test-server/plugins
 	rm -f $(DESTDIR)/lib/systemd/system/battleship.service

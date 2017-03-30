@@ -1,0 +1,13 @@
+Index: GroupDesignBattleship/backend/libwebsockets/CMakeLists.txt
+===================================================================
+--- GroupDesignBattleship.orig/backend/libwebsockets/CMakeLists.txt
++++ GroupDesignBattleship/backend/libwebsockets/CMakeLists.txt
+@@ -1402,7 +1402,7 @@ if (LWS_WITH_LWSWS)
+ 		# Set test app specific defines.
+ 		set_property(TARGET "lwsws"
+ 			     PROPERTY COMPILE_DEFINITIONS
+-			     INSTALL_DATADIR="${CMAKE_INSTALL_PREFIX}/share"
++			     INSTALL_DATADIR="${CMAKE_INSTALL_PREFIX}/lib"
+ 		)
+ endif (LWS_WITH_LWSWS)
+ 

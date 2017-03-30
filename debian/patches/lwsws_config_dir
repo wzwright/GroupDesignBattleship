@@ -1,0 +1,13 @@
+Index: GroupDesignBattleship/backend/libwebsockets/lwsws/main.c
+===================================================================
+--- GroupDesignBattleship.orig/backend/libwebsockets/lwsws/main.c
++++ GroupDesignBattleship/backend/libwebsockets/lwsws/main.c
+@@ -99,7 +99,7 @@ int main(int argc, char **argv)
+ 	char *config_strings;
+ 
+ 	memset(&info, 0, sizeof info);
+-	strcpy(config_dir, "/etc/lwsws");
++	strcpy(config_dir, "/etc/battleship");
+ 	while (n >= 0) {
+ 		n = getopt_long(argc, argv, "hd:c:D", options, NULL);
+ 		if (n < 0)
