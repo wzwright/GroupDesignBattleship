@@ -2,7 +2,7 @@
 Description=Battleship WebSockets Server
 
 [Service]
-ExecStart=/usr/bin/lwsws -c /etc/battleship
+ExecStart=/usr/bin/lwsws
 StandardError=null
 
 [Install]
