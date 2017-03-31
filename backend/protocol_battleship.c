@@ -55,8 +55,25 @@ static json_t *croaking_json_pack(const char* fmt, ...) {
 }
 
 static void send_json_rpc(struct lws *wsi, struct per_session_data__battleship *pss, json_t *payload) {
+	char *buf = NULL, peername[100];
+	json_t *error;
 	assert(payload != NULL);
 	assert(json_object_set_new(payload, "jsonrpc", json_string("2.0")) == 0);
+
+	lws_get_peer_simple(wsi, peername, sizeof(peername));
+	if(json_object_get(payload, "error") != NULL) {
+		error = json_object_get(payload, "error");
+		buf = json_dumps(json_object_get(error, "data"), JSON_ENSURE_ASCII | JSON_SORT_KEYS | JSON_ENCODE_ANY);
+		lwsl_notice("%s < ERROR %" JSON_INTEGER_FORMAT ": %s (%s)", peername,
+			json_integer_value(json_object_get(error, "code")),
+			json_string_value(json_object_get(error, "message")),
+			buf);
+	} else if(json_object_get(payload, "result") != NULL) {
+		buf = json_dumps(json_object_get(payload, "result"), JSON_ENSURE_ASCII | JSON_SORT_KEYS);
+		lwsl_notice("%s < %s", peername, buf);
+	}
+	free(buf);
+
 	pss->pending_replies[pss->pending_replies_count++] = payload;
 	lws_callback_on_writable(wsi);
 }
@@ -96,6 +113,9 @@ static void handle_request(struct lws *wsi, struct per_session_data__battleship 
 	plyr_state pstate;
 	struct notification_user_data *notify_user;
 
+	char peername[100];
+	char *params_encoded;
+
 	result = json_unpack_ex(request, &error, JSON_STRICT, "{s: s, s: s, s: o, s?: o}",
 	               "jsonrpc", &jsonrpc, "method", &method, "id", &id, "params", &params);
 
@@ -103,6 +123,10 @@ static void handle_request(struct lws *wsi, struct per_session_data__battleship 
 	DIE_IF(strcmp(jsonrpc, "2.0"), id, -32600, "Invalid Request", json_string("JSON-RPC version not 2.0"));
 
 	paramN = json_array_size(params);
+	lws_get_peer_simple(wsi, peername, sizeof(peername));
+	params_encoded = json_dumps(params, JSON_ENSURE_ASCII | JSON_SORT_KEYS);
+	lwsl_notice("%s > %s(%s)", peername, method, params_encoded);
+	free(params_encoded);
 	if(strcmp(method, "newGame") == 0) {
 		EXPECT_PARAMS(1);
 		nick = json_string_value(json_array_get(params, 0));
