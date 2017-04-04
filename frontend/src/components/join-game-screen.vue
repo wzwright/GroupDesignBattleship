@@ -2,6 +2,7 @@
   <div>
     <textInput
       inputID="code"
+      ref="code"
       label="Code:"
       v-on:input="updateUserInput"
       v-on:keyup.enter.native="joinGame"
@@ -42,6 +43,9 @@ export default {
         })
       }
     },
+  },
+  mounted() {
+    this.$refs.code.focus()
   },
 }
 </script>
