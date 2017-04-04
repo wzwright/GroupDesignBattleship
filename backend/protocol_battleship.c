@@ -257,6 +257,9 @@ static void handle_request(struct lws *wsi, struct per_session_data__battleship 
 			free(notify_user);
 			DIE_ON_ERROR(result);
 		}
+	} else if(strcmp(method, "getSource") == 0){
+		EXPECT_PARAMS(0);
+		REPLY(json_string("https://github.com/wzwright/GroupDesignBattleship/"));
 	} else {
 		DIE(id, -32601, "Method not found", NULL);
 	}
