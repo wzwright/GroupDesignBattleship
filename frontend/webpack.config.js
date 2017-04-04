@@ -1,6 +1,9 @@
 var path = require('path')
 var webpack = require('webpack')
 
+var fs = require('fs')
+var license = fs.readFileSync('./dist.txt').toString()
+
 module.exports = {
   entry: './src/main.js',
   output: {
@@ -59,6 +62,9 @@ module.exports = {
   plugins: [
     new webpack.DefinePlugin({
       API_URL: process.env.USE_LOCAL_SERVER ? '"ws://localhost:8080/"' :'"wss://bship.ieval.ro:8080/"'
+    }),
+    new webpack.BannerPlugin({
+      banner: license
     })
   ]
 }
