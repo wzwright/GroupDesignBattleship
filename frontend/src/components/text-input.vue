@@ -1,7 +1,7 @@
 <template>
   <div class="textInput">
     <label :for="inputID">{{label}}</label>
-    <input :id="inputID" type="text" :placeholder="placeholder"
+    <input ref="inputID" :id="inputID" type="text" :placeholder="placeholder"
       :value="userInput"
       v-on:input="updateValue($event.target.value)">
     <p v-if="errorMessage !== ''">{{errorMessage}}</p>
@@ -21,6 +21,9 @@ export default {
   methods: {
     updateValue(value) {
       this.$emit('input', value)
+    },
+    focus() {
+      this.$refs.inputID.focus()
     },
   },
 }

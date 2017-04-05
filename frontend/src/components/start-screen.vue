@@ -2,6 +2,7 @@
   <div id="start-screen">
     <textInput
       inputID="nickname"
+      ref="nickname"
       label="Nickname:"
       placeholder="Anonymous"
       v-on:input="updateNickname"
@@ -23,6 +24,9 @@ export default {
     return {
       nickname: '',
     }
+  },
+  mounted() {
+    this.$refs.nickname.focus()
   },
   methods: {
     updateNickname(nickname) {
