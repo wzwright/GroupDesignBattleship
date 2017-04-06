@@ -99,6 +99,7 @@ export default new Vuex.Store({
   	      		for (let i = initialx; i <= x; i++){
   	      			state.player.localgrid.push({ship,x:i,y})
   	      		}
+              ship.placed=true
   	    	} else if ((payload.rotation !== 'h') && (maxY <= 9) && checkOverlap()) {
   	      		y = maxY
   	      		Vue.set(ship, 'start', payload.position)
@@ -106,7 +107,8 @@ export default new Vuex.Store({
   	      		cleanLocalGrid()
   	      		for (let i = initialy; i <= y; i++){
   	      			state.player.localgrid.push({ship,x,y:i})
-  	      		} 	    
+  	      		}
+              ship.placed=true  
   	  		}
       	}
     },
