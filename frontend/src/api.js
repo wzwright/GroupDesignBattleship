@@ -39,7 +39,7 @@ export function joinGame(gameID, nickname, okCallback, errorCallback) {
   doRPC('joinGame', [gameID, nickname], okCallback, errorCallback)
 }
 
-// Takes a gameID and nickname, result is a playerID
+// Takes a nickname, result is a playerID
 export function joinRandomGame(nickname, okCallback, errorCallback) {
   doRPC('joinRandomGame', [nickname], okCallback, errorCallback)
 }
