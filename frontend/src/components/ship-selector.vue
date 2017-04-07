@@ -1,11 +1,11 @@
 <template>
   <div id="ships-container">
     <div id="ships">
-      <button v-on:click="setActiveShip('carrier')">Carrier (5)</button>
-      <button v-on:click="setActiveShip('battleship')">Battleship (4)</button>
-      <button v-on:click="setActiveShip('cruiser')">Cruiser (3)</button>
-      <button v-on:click="setActiveShip('submarine')">Submarine (3)</button>
-      <button v-on:click="setActiveShip('destroyer')">Destroyer (2)</button>
+      <button v-on:click="setActiveShip('carrier')" v-bind:class="selectionClass('carrier')">Carrier (5)</button>
+      <button v-on:click="setActiveShip('battleship')" v-bind:class="selectionClass('battleship')">Battleship (4)</button>
+      <button v-on:click="setActiveShip('cruiser')" v-bind:class="selectionClass('cruiser')">Cruiser (3)</button>
+      <button v-on:click="setActiveShip('submarine')" v-bind:class="selectionClass('submarine')">Submarine (3)</button>
+      <button v-on:click="setActiveShip('destroyer')" v-bind:class="selectionClass('destroyer')">Destroyer (2)</button>
       <button v-on:click="setActiveRotation()">rotate</button>
       <button id="submit" v-on:click="submitGrid">Submit</button>
     </div>
@@ -74,6 +74,9 @@ export default {
     setActiveShip(ship) {
       this.activeShip = ship
     },
+    selectionClass(s){
+      return this.$store.state.player.ships[s].placed?"placed":"notPlaced"
+    },
   },
 }
 </script>
@@ -102,5 +105,12 @@ export default {
    * since 'getBoundingClientRect' is affected
    */
   margin: 20px;
+}
+
+.placed {
+  color:green;
+}
+.notPlaced{
+  color:red;
 }
 </style>
