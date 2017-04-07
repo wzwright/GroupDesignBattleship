@@ -58,59 +58,59 @@ export default new Vuex.Store({
       }
     },
     setShip(state, payload) {
-    	const ship = state.player.ships[payload.shipName]
-      	if (ship !== undefined) {
-      		let { x, y } = payload.position
-      		let initialx = x
-      		let initialy = y
-      		let maxX = x + shipSizes[payload.shipName] - 1
-      		let maxY = y + shipSizes[payload.shipName] - 1
-        	function checkOverlap() {
-          		let takenCoords = []
-         		if (payload.rotation === 'h'){
-            		for (let i = x; i <= maxX; i++){
-              			takenCoords.push({x:i,y})
-            		}
-          		} else {
-            		for (let i = y; i <= maxY; i++){
-              			takenCoords.push({x,y:i})
-            		}
-          		}
-          		return (takenCoords.every(function(takenelement){
-          			return (state.player.localgrid.every(function(gridelement){
-          				return ((gridelement.x !== takenelement.x) || (gridelement.y !== takenelement.y) || (gridelement.ship === ship))
-          			}))
-          		}))	 
-      		}
-        	function cleanLocalGrid() {
-        		let i = 0
-        		state.player.localgrid.forEach(function(gridelement){
-        			if (gridelement.ship === ship){
-      					state.player.localgrid.splice(i,shipSizes[payload.shipName])
-      				}
-      				i++
-        		})	
-        	}
-  	    	if ((payload.rotation === 'h') && (maxX <= 9) && checkOverlap()) {
-  	      		x = maxX
-  	      		Vue.set(ship, 'start', payload.position)
-  	      		Vue.set(ship, 'end', { x, y })
-	  	  		cleanLocalGrid()
-  	      		for (let i = initialx; i <= x; i++){
-  	      			state.player.localgrid.push({ship,x:i,y})
-  	      		}
+      const ship = state.player.ships[payload.shipName]
+        if (ship !== undefined) {
+          let { x, y } = payload.position
+          let initialx = x
+          let initialy = y
+          let maxX = x + shipSizes[payload.shipName] - 1
+          let maxY = y + shipSizes[payload.shipName] - 1
+          function checkOverlap() {
+              let takenCoords = []
+            if (payload.rotation === 'h'){
+                for (let i = x; i <= maxX; i++){
+                    takenCoords.push({x:i,y})
+                }
+              } else {
+                for (let i = y; i <= maxY; i++){
+                    takenCoords.push({x,y:i})
+                }
+              }
+              return (takenCoords.every(function(takenelement){
+                return (state.player.localgrid.every(function(gridelement){
+                  return ((gridelement.x !== takenelement.x) || (gridelement.y !== takenelement.y) || (gridelement.ship === ship))
+                }))
+              }))  
+          }
+          function cleanLocalGrid() {
+            let i = 0
+            state.player.localgrid.forEach(function(gridelement){
+              if (gridelement.ship === ship){
+                state.player.localgrid.splice(i,shipSizes[payload.shipName])
+              }
+              i++
+            })  
+          }
+          if ((payload.rotation === 'h') && (maxX <= 9) && checkOverlap()) {
+              x = maxX
+              Vue.set(ship, 'start', payload.position)
+              Vue.set(ship, 'end', { x, y })
+            cleanLocalGrid()
+              for (let i = initialx; i <= x; i++){
+                state.player.localgrid.push({ship,x:i,y})
+              }
               ship.placed=true
-  	    	} else if ((payload.rotation !== 'h') && (maxY <= 9) && checkOverlap()) {
-  	      		y = maxY
-  	      		Vue.set(ship, 'start', payload.position)
-  	      		Vue.set(ship, 'end', { x, y })
-  	      		cleanLocalGrid()
-  	      		for (let i = initialy; i <= y; i++){
-  	      			state.player.localgrid.push({ship,x,y:i})
-  	      		}
+          } else if ((payload.rotation !== 'h') && (maxY <= 9) && checkOverlap()) {
+              y = maxY
+              Vue.set(ship, 'start', payload.position)
+              Vue.set(ship, 'end', { x, y })
+              cleanLocalGrid()
+              for (let i = initialy; i <= y; i++){
+                state.player.localgrid.push({ship,x,y:i})
+              }
               ship.placed=true  
-  	  		}
-      	}
+          }
+        }
     },
     setBombedPositions(state, bombs) {
       Vue.set(state.player, 'bombs', bombs)
@@ -164,6 +164,20 @@ export default new Vuex.Store({
           commit('setGameID', gameID)
           commit('setPlayerID', playerID)
           dispatch('getOpponentNickname', {})
+          if (typeof okCallback === 'function') okCallback()
+        },
+        (e) => {
+          console.error(`Error joining game: ${e.message}`)
+          if (typeof errorCallback === 'function') errorCallback()
+        },
+      )
+    },
+    joinRandomGame({ dispatch, commit, state }, { gameID, okCallback, errorCallback }) {
+      api.joinRandomGame(
+        state.player.nickname,
+        (playerID) => {
+          commit('setGameID', gameID)
+          commit('setPlayerID', playerID)
           if (typeof okCallback === 'function') okCallback()
         },
         (e) => {

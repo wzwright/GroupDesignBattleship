@@ -39,6 +39,11 @@ export function joinGame(gameID, nickname, okCallback, errorCallback) {
   doRPC('joinGame', [gameID, nickname], okCallback, errorCallback)
 }
 
+// Takes a gameID and nickname, result is a playerID
+export function joinRandomGame(nickname, okCallback, errorCallback) {
+  doRPC('joinRandomGame', [nickname], okCallback, errorCallback)
+}
+
 // Takes a playerID, result is the opponent's nickname
 export function getOpponentNickname(playerID, okCallback, errorCallback) {
   doRPC('getOpponentNickname', [playerID], okCallback, errorCallback)
