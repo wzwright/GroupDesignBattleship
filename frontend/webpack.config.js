@@ -2,7 +2,7 @@ var path = require('path')
 var webpack = require('webpack')
 
 var fs = require('fs')
-var license = fs.readFileSync('./dist.txt').toString()
+var license = fs.readFileSync('./js-license.txt').toString()
 
 module.exports = {
   entry: './src/main.js',
