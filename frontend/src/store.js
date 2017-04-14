@@ -192,16 +192,15 @@ export default new Vuex.Store({
         },
       )
     },
-    joinRandomGame({ dispatch, commit, state }, { gameID, okCallback, errorCallback }) {
+    joinRandomGame({ dispatch, commit, state }, { okCallback, errorCallback }) {
       api.joinRandomGame(
         state.player.nickname,
         (playerID) => {
-          commit('setGameID', gameID)
           commit('setPlayerID', playerID)
           if (typeof okCallback === 'function') okCallback()
         },
         (e) => {
-          console.error(`Error joining game: ${e.message}`)
+          console.error(`Error joining random game: ${e.message}`)
           if (typeof errorCallback === 'function') errorCallback()
         },
       )
