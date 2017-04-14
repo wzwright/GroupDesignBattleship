@@ -30,14 +30,11 @@
          v-bind:bombTarget="bombTarget"
          v-on:gridClicked="bombSelect"
       ></opponentCanvas>
+      <p>You have hit {{playerSuccessfulBombs}}/{{playerTries}} squares ({{playerHitRate}}%)</p>
       <button
         v-show="phase === 'bomb'"
         v-on:click="bombSubmit"
       >Bomb!</button>
-      <p>Turn Number: {{turnNumber}}</p>
-      <p>Successful hits: {{playerSuccessfulBombs}}</p>
-      <p>Hit Rate: {{playerHitRate}}%</p>
-      <p>Left to hit: {{17-playerSuccessfulBombs}}</p>
     </div>
     <div class="shipContainer playerShipContainer">
       <p>{{playerNickname}}'s ships</p>
@@ -46,11 +43,10 @@
          v-bind:bombsOK="playerBombsOK"
          v-bind:bombsFailed="playerBombsFailed"
       ></playerCanvas>
-      <p>Successful hits: {{opponentSuccessfulBombs}}</p>
-      <p>Hit Rate: {{opponentHitRate}}%</p>
-      <p>Left to hit: {{17-opponentSuccessfulBombs}}</p>
+      <p>{{opponentNickname}} has hit {{opponentSuccessfulBombs}}/{{opponentTries}} squares ({{opponentHitRate}}%)</p>
     </div>
     <div class="message">
+      <p>Turn: {{turnNumber}}</p>
       <p v-if="phase === 'bomb'">Click on a place on your opponent's board and click 'bomb' to bomb them!</p>
       <p v-if="phase === 'wait'">Waiting for your opponent...</p>
       <p v-if="phase === 'gameOver' && won">You win!</p>
@@ -79,10 +75,7 @@ export default {
       playerBombsFailed: [],
       won: false,
       turnNumber: 0,
-      playerSuccessfulBombs: 0,
-      opponentSuccessfulBombs: 0,
-      playerHitRate: 100,
-      opponentHitRate: 100,
+      totalSquares: 17,
     }
   },
   computed: {
@@ -98,6 +91,30 @@ export default {
     opponentNickname() {
       return this.$store.state.opponent.nickname
     },
+    playerSuccessfulBombs() {
+      return this.bombsOK.length
+    },
+    playerTries() {
+      return this.playerSuccessfulBombs + this.bombsFailed.length
+    },
+    playerHitRate() {
+      if (this.playerTries === 0) return 100
+
+      const hitrate = (this.playerSuccessfulBombs / this.playerTries)
+      return (hitrate * 100).toFixed()
+    },
+    opponentSuccessfulBombs() {
+      return this.playerBombsOK.length
+    },
+    opponentTries() {
+      return this.opponentSuccessfulBombs + this.playerBombsFailed.length
+    },
+    opponentHitRate() {
+      if (this.opponentTries === 0) return 100
+
+      const hitrate = (this.opponentSuccessfulBombs / this.opponentTries)
+      return (hitrate * 100).toFixed()
+    },
   },
   mounted() {
     this.wait()
@@ -111,8 +128,6 @@ export default {
         pos: this.bombTarget,
         okCallback: (bombSucceeded) => {
           if (bombSucceeded) {
-          	this.playerSuccessfulBombs++
-          	this.playerHitRate = (this.playerSuccessfulBombs/this.turnNumber)*100
             this.bombsOK.push(this.bombTarget)
             this.$store.dispatch('getGameEnd', {
               okCallback: ({ gameOver, won }) => {
@@ -126,7 +141,6 @@ export default {
             })
           } else {
             this.bombsFailed.push(this.bombTarget)
-            this.playerHitRate = (this.playerSuccessfulBombs/this.turnNumber)*100
             this.wait()
           }
         },
@@ -147,11 +161,7 @@ export default {
                     this.phase = 'gameOver'
                   } else {
                     this.phase = 'bomb'
-                    this.opponentSuccessfulBombs = this.playerBombsOK.length
-                    this.turnNumber++
-                    if ((this.opponentSuccessfulBombs !== 0) || (this.playerBombsFailed.length !== 0)){
-                    	this.opponentHitRate = (this.opponentSuccessfulBombs/(this.playerBombsFailed.length+this.opponentSuccessfulBombs))*100
-                    }
+                    this.turnNumber += 1
                   }
                 },
               })
@@ -165,10 +175,9 @@ export default {
       let bombsOK = []
       let bombsFailed = []
       bombs.forEach((bomb) => {
-        let [x, y] = bomb
-        let hitAShip = this.playerShips.reduce(
-          (acc, [x1, y1, x2, y2]) => acc || (x1 <= x && x <= x2 && y1 <= y && y <= y2)
-        , false)
+        const [x, y] = bomb
+        const hitAShip = this.playerShips.reduce((acc, [x1, y1, x2, y2]) =>
+          acc || (x1 <= x && x <= x2 && y1 <= y && y <= y2), false)
 
         if (hitAShip) {
           bombsOK.push(bomb)
