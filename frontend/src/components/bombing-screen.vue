@@ -75,7 +75,6 @@ export default {
       bombsMissedByOpponent: [],
       won: false,
       turnNumber: 0,
-      totalSquares: 17,
     }
   },
   computed: {
