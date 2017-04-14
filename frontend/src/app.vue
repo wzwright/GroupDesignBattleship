@@ -22,6 +22,12 @@
   <div id="app">
     <startOverlay></startOverlay>
     <battleships></battleships>
+    <div id="footer">
+      <a href="https://github.com/wzwright/GroupDesignBattleship">
+        <img src="./components/assets/GitHub-Mark-32px.png" alt="github logo" width="16" height="16" />
+        <span>Find us on GitHub!</span>
+      </a>
+    </div>
   </div>
 </template>
 
@@ -38,7 +44,7 @@ export default {
 }
 </script>
 
-<style>
+<style lang="scss">
 #app {
   height: 100%;
   width: 100%;
@@ -49,5 +55,39 @@ html, body {
   margin: 0;
 
   font-family: 'Roboto', 'Helvetica Neue', 'Calibri Light', sans-serif;
+}
+
+$footer-height: 30px;
+
+body {
+  /* so that the footer doesn't obscure text */
+  padding-bottom: $footer-height;
+}
+
+#footer {
+  position: fixed;
+  bottom: 0;
+  padding: 10px;
+  border-top: 1px solid #777;
+  background-color: white;
+  width: 100%;
+  /* for padding */
+  height: calc($footer-height - 20px);
+
+  a {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: #777;
+    font-size: 0.8em;
+
+    span {
+      padding-left: 5px;
+    }
+
+    &:hover, &:focus, &:active {
+      color: #444;
+    }
+  }
 }
 </style>
