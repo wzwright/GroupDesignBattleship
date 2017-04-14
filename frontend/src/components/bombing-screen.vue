@@ -79,6 +79,7 @@ export default {
     }
   },
   computed: {
+    // Player information
     playerShips() {
       return this.$store.state.player.grid
     },
@@ -97,6 +98,7 @@ export default {
       const hitrate = (this.playerSuccessfulBombs / this.playerTries)
       return (hitrate * 100).toFixed()
     },
+    // opponent information
     opponentShips() {
       return this.$store.state.opponent.grid
     },
@@ -115,9 +117,32 @@ export default {
       const hitrate = (this.opponentSuccessfulBombs / this.opponentTries)
       return (hitrate * 100).toFixed()
     },
+    bombsByOpponent: {
+      get() {
+        return this.bombsHitByOpponent.concat(this.bombsMissedByOpponent)
+      },
+      set(bombs) {
+        let bombsHit = []
+        let bombsMissed = []
+        bombs.forEach((bomb) => {
+          const [x, y] = bomb
+          const hitAShip = this.playerShips.reduce((acc, [x1, y1, x2, y2]) =>
+            acc || (x1 <= x && x <= x2 && y1 <= y && y <= y2), false)
+
+          if (hitAShip) {
+            bombsHit.push(bomb)
+          } else {
+            bombsMissed.push(bomb)
+          }
+        })
+
+        this.bombsHitByOpponent = bombsHit
+        this.bombsMissedByOpponent = bombsMissed
+      },
+    },
   },
   mounted() {
-    this.wait()
+    this.waitForYourTurn()
   },
   methods: {
     bombSelect({ x, y }) {
@@ -135,25 +160,25 @@ export default {
                   this.won = won
                   this.phase = 'gameOver'
                 } else {
-                  this.wait()
+                  this.waitForYourTurn()
                 }
               },
             })
           } else {
             this.bombsMissedByPlayer.push(this.bombTarget)
-            this.wait()
+            this.waitForYourTurn()
           }
         },
       })
     },
-    wait() {
+    waitForYourTurn() {
       this.phase = 'wait'
       this.bombTarget = []
       this.$store.dispatch('waitForYourTurn', {
         okCallback: () => {
           this.$store.dispatch('getBombedPositions', {
             okCallback: () => {
-              this.calculateBombTypes()
+              this.bombsByOpponent = this.$store.state.player.bombs
               this.$store.dispatch('getGameEnd', {
                 okCallback: ({ gameOver, won }) => {
                   if (gameOver) {
@@ -169,25 +194,6 @@ export default {
           })
         },
       })
-    },
-    calculateBombTypes() {
-      const bombs = this.$store.state.player.bombs
-      let bombsHit = []
-      let bombsMissed = []
-      bombs.forEach((bomb) => {
-        const [x, y] = bomb
-        const hitAShip = this.playerShips.reduce((acc, [x1, y1, x2, y2]) =>
-          acc || (x1 <= x && x <= x2 && y1 <= y && y <= y2), false)
-
-        if (hitAShip) {
-          bombsHit.push(bomb)
-        } else {
-          bombsMissed.push(bomb)
-        }
-      })
-
-      this.bombsHitByOpponent = bombsHit
-      this.bombsMissedByOpponent = bombsMissed
     },
   },
 }
