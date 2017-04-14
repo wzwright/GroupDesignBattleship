@@ -53,9 +53,7 @@ The project uses the following with webpack:
 
 [ESLint](http://eslint.org/) is a linter for javascript which checks code for style errors.
 
-I've provided a `.eslintrc.yml` file if you want to lint your javascript. Information about the errors can be found by searching the docs. You may also need to install npm packages like so:
-
-`npm install eslint eslint-plugin-import eslint-plugin-vue eslint-config-airbnb-base eslint-config-vue`
+I've provided a `.eslintrc.yml` file if you want to lint your javascript. Information about the errors can be found by searching the docs.
 
 Then, while in `frontend`, run `./node_modules/.bin/eslint ./path/to/file` to use it, or install an eslint plugin in your text editor.
 
