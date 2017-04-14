@@ -94,8 +94,8 @@ export default {
     setActiveShip(ship) {
       this.activeShip = ship
     },
-    selectionClass(s){
-      return this.$store.state.player.ships[s].placed?"placed":"notPlaced"
+    selectionClass(s) {
+      return this.$store.state.player.ships[s].placed ? 'placed' : 'notPlaced'
     },
   },
 }

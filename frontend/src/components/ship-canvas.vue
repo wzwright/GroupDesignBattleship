@@ -45,7 +45,7 @@ export default {
       grid: {
         cellSize: 32,
         cells: 10,
-        ocean: Array.from({length: 100}, () => Math.floor(Math.random() * 4))
+        ocean: Array.from({ length: 100 }, () => Math.floor(Math.random() * 4)),
       },
       sprites: new Image(),
     }
@@ -98,7 +98,7 @@ export default {
       this.drawAll()
     },
     sendCoordToParent(event) {
-      let pos = this.getCoordinate(event.clientX, event.clientY)
+      const pos = this.getCoordinate(event.clientX, event.clientY)
       this.$emit('gridClicked', pos)
     },
     getCoordinate(posX, posY) {
@@ -114,7 +114,7 @@ export default {
     // drawing methods
     preloadSprites() {
       return new Promise((resolve, reject) => {
-        let img = new Image()
+        const img = new Image()
         img.onload = () => {
           this.sprites = img
           resolve()
@@ -138,16 +138,14 @@ export default {
       this.drawGrid()
     },
     drawOcean() {
-      const cellSize = this.grid.cellSize
       for (let x = 0; x < 10; x++) {
         for (let y = 0; y < 10; y++) {
-          const num = this.grid.ocean[x * 10 + y]
+          const num = this.grid.ocean[(x * 10) + y]
           this.drawImageCell(x, y, num, 0)
         }
       }
     },
     drawShips() {
-      const cellSize = this.grid.cellSize
       this.ships.forEach(([x1, y1, x2, y2]) => {
         if (x1 === x2) {
           // horizontal ship
@@ -163,9 +161,8 @@ export default {
       })
     },
     drawImageCells(cells, spritesX, spritesY) {
-      const cellSize = this.grid.cellSize
       for (let i = 0; i < cells.length; i++) {
-        let [x, y] = cells[i]
+        const [x, y] = cells[i]
         this.drawImageCell(x, y, spritesX, spritesY)
       }
     },
@@ -181,7 +178,7 @@ export default {
     },
     drawCells(cells, colour) {
       for (let i = 0; i < cells.length; i++) {
-        let [x, y] = cells[i]
+        const [x, y] = cells[i]
         this.drawCell(x, y, colour)
       }
     },
