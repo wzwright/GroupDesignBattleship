@@ -211,6 +211,7 @@ export default new Vuex.Store({
         AILevel,
         (playerID) => {
           commit('setPlayerID', playerID)
+          commit('setOpponentNickname', 'The Server')
           if (typeof okCallback === 'function') okCallback()
         },
         (e) => {
