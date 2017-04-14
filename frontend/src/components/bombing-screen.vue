@@ -25,8 +25,8 @@
       <opponentCanvas class="bombingCanvas"
          v-on:keyup.enter.native="bombSubmit"
          v-bind:ships="opponentShips"
-         v-bind:bombsOK="bombsOK"
-         v-bind:bombsFailed="bombsFailed"
+         v-bind:bombsHit="bombsHitByPlayer"
+         v-bind:bombsMissed="bombsMissedByPlayer"
          v-bind:bombTarget="bombTarget"
          v-on:gridClicked="bombSelect"
       ></opponentCanvas>
@@ -40,8 +40,8 @@
       <p>{{playerNickname}}'s ships</p>
       <playerCanvas class="bombingCanvas"
          v-bind:ships="playerShips"
-         v-bind:bombsOK="playerBombsOK"
-         v-bind:bombsFailed="playerBombsFailed"
+         v-bind:bombsHit="bombsHitByOpponent"
+         v-bind:bombsMissed="bombsMissedByOpponent"
       ></playerCanvas>
       <p>{{opponentNickname}} has hit {{opponentSuccessfulBombs}}/{{opponentTries}} squares ({{opponentHitRate}}%)</p>
     </div>
@@ -68,11 +68,11 @@ export default {
     return {
       // phase is either 'bomb', 'wait' or 'gameOver'
       phase: 'wait',
-      bombsOK: [],
-      bombsFailed: [],
+      bombsHitByPlayer: [],
+      bombsMissedByPlayer: [],
       bombTarget: [],
-      playerBombsOK: [],
-      playerBombsFailed: [],
+      bombsHitByOpponent: [],
+      bombsMissedByOpponent: [],
       won: false,
       turnNumber: 0,
       totalSquares: 17,
@@ -92,10 +92,10 @@ export default {
       return this.$store.state.opponent.nickname
     },
     playerSuccessfulBombs() {
-      return this.bombsOK.length
+      return this.bombsHitByPlayer.length
     },
     playerTries() {
-      return this.playerSuccessfulBombs + this.bombsFailed.length
+      return this.playerSuccessfulBombs + this.bombsMissedByPlayer.length
     },
     playerHitRate() {
       if (this.playerTries === 0) return 100
@@ -104,10 +104,10 @@ export default {
       return (hitrate * 100).toFixed()
     },
     opponentSuccessfulBombs() {
-      return this.playerBombsOK.length
+      return this.bombsHitByOpponent.length
     },
     opponentTries() {
-      return this.opponentSuccessfulBombs + this.playerBombsFailed.length
+      return this.opponentSuccessfulBombs + this.bombsMissedByOpponent.length
     },
     opponentHitRate() {
       if (this.opponentTries === 0) return 100
@@ -128,7 +128,7 @@ export default {
         pos: this.bombTarget,
         okCallback: (bombSucceeded) => {
           if (bombSucceeded) {
-            this.bombsOK.push(this.bombTarget)
+            this.bombsHitByPlayer.push(this.bombTarget)
             this.$store.dispatch('getGameEnd', {
               okCallback: ({ gameOver, won }) => {
                 if (gameOver) {
@@ -140,7 +140,7 @@ export default {
               },
             })
           } else {
-            this.bombsFailed.push(this.bombTarget)
+            this.bombsMissedByPlayer.push(this.bombTarget)
             this.wait()
           }
         },
@@ -172,22 +172,22 @@ export default {
     },
     calculateBombTypes() {
       const bombs = this.$store.state.player.bombs
-      let bombsOK = []
-      let bombsFailed = []
+      let bombsHit = []
+      let bombsMissed = []
       bombs.forEach((bomb) => {
         const [x, y] = bomb
         const hitAShip = this.playerShips.reduce((acc, [x1, y1, x2, y2]) =>
           acc || (x1 <= x && x <= x2 && y1 <= y && y <= y2), false)
 
         if (hitAShip) {
-          bombsOK.push(bomb)
+          bombsHit.push(bomb)
         } else {
-          bombsFailed.push(bomb)
+          bombsMissed.push(bomb)
         }
       })
 
-      this.playerBombsOK = bombsOK
-      this.playerBombsFailed = bombsFailed
+      this.bombsHitByOpponent = bombsHit
+      this.bombsMissedByOpponent = bombsMissed
     },
   },
 }

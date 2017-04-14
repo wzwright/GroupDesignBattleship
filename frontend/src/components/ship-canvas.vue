@@ -25,8 +25,8 @@
     </div>
     <canvas ref="canvas" v-on:click="sendCoordToParent">
       {{ships}}
-      {{bombsOK}}
-      {{bombsFailed}}
+      {{bombsHit}}
+      {{bombsMissed}}
       {{bombTarget}}
     </canvas>
     <div class="bottomGridChars">
@@ -55,11 +55,11 @@ export default {
       type: Array,
       default: () => [],
     },
-    bombsOK: {
+    bombsHit: {
       type: Array,
       default: () => [],
     },
-    bombsFailed: {
+    bombsMissed: {
       type: Array,
       default: () => [],
     },
@@ -127,9 +127,9 @@ export default {
       this.drawOcean()
       this.drawShips()
       // draw ocean again before drawing hit ships
-      this.drawImageCells(this.bombsOK, 0, 0)
-      this.drawImageCells(this.bombsOK, 1, 1)
-      this.drawImageCells(this.bombsFailed, 2, 1)
+      this.drawImageCells(this.bombsHit, 0, 0)
+      this.drawImageCells(this.bombsHit, 1, 1)
+      this.drawImageCells(this.bombsMissed, 2, 1)
       if (this.bombTarget.length === 2) {
         const [x, y] = this.bombTarget
         this.drawCell(x, y, 'rgba(255, 255, 0, 0.7)')
