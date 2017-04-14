@@ -85,12 +85,6 @@ export default {
     playerNickname() {
       return this.$store.state.player.nickname
     },
-    opponentShips() {
-      return this.$store.state.opponent.grid
-    },
-    opponentNickname() {
-      return this.$store.state.opponent.nickname
-    },
     playerSuccessfulBombs() {
       return this.bombsHitByPlayer.length
     },
@@ -102,6 +96,12 @@ export default {
 
       const hitrate = (this.playerSuccessfulBombs / this.playerTries)
       return (hitrate * 100).toFixed()
+    },
+    opponentShips() {
+      return this.$store.state.opponent.grid
+    },
+    opponentNickname() {
+      return this.$store.state.opponent.nickname
     },
     opponentSuccessfulBombs() {
       return this.bombsHitByOpponent.length
