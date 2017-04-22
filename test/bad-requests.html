@@ -1,0 +1,337 @@
+<script src='../frontend/node_modules/jrpc/jrpc.min.js'></script>
+<script src='../frontend/node_modules/longwebsocket/longwebsocket.min.js'></script>
+<script>
+const remote = new JRPC({ client: true })
+const ws = new LongWebSocket({
+  // defined in webpack
+  url: 'wss://bship.ieval.ro:8080/',
+  onopen: function() {
+    remote.setTransmitter(function(msg, next) {
+      try {
+        ws.send(msg)
+        return next(false)
+      } catch (e) {
+        console.error(e)
+        return next(true)
+      }
+    })
+  },
+  onmessage: function(data) {
+    remote.receive(data)
+  }
+})
+
+function doRPC(method, args, okCallback, errorCallback) {
+  remote.call(method, args, function(error, result) {
+    if (error) errorCallback(error)
+    else okCallback(result)
+  })
+}
+
+// Takes a nickname, result is an array like [gameID, playerID]
+function newGame(nickname, okCallback, errorCallback) {
+  doRPC('newGame', [nickname], okCallback, errorCallback)
+}
+
+// Takes a gameID and nickname, result is a playerID
+function joinGame(gameID, nickname, okCallback, errorCallback) {
+  doRPC('joinGame', [gameID, nickname], okCallback, errorCallback)
+}
+
+// Takes a playerID, result is the opponent's nickname
+function getOpponentNickname(playerID, okCallback, errorCallback) {
+  doRPC('getOpponentNickname', [playerID], okCallback, errorCallback)
+}
+
+/*
+ * Takes a playerID and an array like [[0,2,3,2], [3,7,3,9], ...] of 5
+ * elements (for 5 ships). Result is null.
+ */
+function submitGrid(playerID, grid, okCallback, errorCallback) {
+  doRPC('submitGrid', [playerID, grid], okCallback, errorCallback)
+}
+
+// Takes a playerID, result is an array like [[0,3], [5,1], ...]
+function getBombedPositions(playerID, okCallback, errorCallback) {
+  doRPC('getBombedPositions', [playerID], okCallback, errorCallback)
+}
+
+/*
+ * Takes a playerID and two coordinates, returns a boolean indicating
+ * whether the bomb hit.
+ */
+function bombPosition(playerID, x, y, okCallback, errorCallback) {
+  doRPC('bombPosition', [playerID, x, y], okCallback, errorCallback)
+}
+
+/*
+ * Takes a playerID, returns an object with keys game_over, won, grid.
+ * First two are booleans, last is either null or a 5-element array
+ * like the one given to submitGrid.
+ */
+function getGameEnd(playerID, okCallback, errorCallback) {
+  doRPC('getGameEnd', [playerID], okCallback, errorCallback)
+}
+
+// Takes a playerID, returns when the other player has joined the game.
+function waitForPlayer(playerID, okCallback, errorCallback) {
+  doRPC('waitForPlayer', [playerID], okCallback, errorCallback)
+}
+
+// Takes a playerID, returns when it is your turn to bomb.
+function waitForYourTurn(playerID, okCallback, errorCallback) {
+  doRPC('waitForYourTurn', [playerID], okCallback, errorCallback)
+}
+
+// Takes a playerID, returns when the game has ended.
+function waitForGameEnd(playerID, okCallback, errorCallback) {
+  doRPC('waitForGameEnd', [playerID], okCallback, errorCallback)
+}
+
+/*Actual tests*/
+var actions = []
+var step=0
+function next(){
+	actions[step]()
+	step+=1
+}
+
+actions.push(function(){doRPC('newGame', ["too many", "arguments?"],
+	function([gameID, playerID]) {
+  	console.error("Game was created with invalid params")
+  },
+  function(e) {
+    next()
+  }
+)})
+
+var game=-1
+var player1=-2
+var player2=-3
+actions.push(function(){newGame(
+    "p1",
+    function([gameID, playerID]) {
+      game=gameID
+      player1=playerID
+      next()
+    },
+    function(e) {
+      console.error("Error creating new game: "+e.message)
+    }
+)})
+actions.push(function(){joinGame(
+	game,
+	"p2",
+	(playerID) => {
+	  player2=playerID
+	  	getOpponentNickname(
+	  player2,
+	  (nickname) => {
+	    console.assert(nickname=="p1", "Incorrect nickname for p1: " + nickname)
+	    next()
+	  },
+	  (e) => {
+	    console.error(`Error getting nickname: ${e.message}`)
+	  }
+	  )
+	},
+	(e) => {
+	    console.error(`Error joining game: ${e.message}`)
+	    if (typeof errorCallback === 'function') errorCallback()
+	  }
+)})
+actions.push(function(){joinGame(
+	game,
+	"p2",
+	(playerID) => {
+		console.error('Third player was allowed to join game')  
+	},
+  (e) => {
+    next()
+  }
+)})
+actions.push(function(){waitForPlayer(
+  player1,
+  () => {
+      getOpponentNickname(
+      player1,
+      (nickname) => {
+        console.assert(nickname=="p2", "Incorrect nickname for p2: " + nickname)
+        next()
+      },
+    (e) => {
+        console.error(`Error getting nickname: ${e.message}`)
+    }
+    )
+  },
+  (e) => {
+    if (e.code === -1000) {
+      // timed out
+      console.error('timed out waiting for player')
+    } else {
+      console.error(`Error waiting for player: ${e.message}`)
+    }
+  }
+)})
+actions.push(function(){submitGrid(
+	player1, 
+	[[2,1,6,1],[0,2,3,2],[1,3,3,3],[2,4,4,4]],
+	() => {console.error("Accepted bad grid")},
+	(e) => {next()}
+)})
+actions.push(function(){submitGrid(
+	player1, 
+	[[2,1,6,1],[0,2,3,2],[1,3,3,3],[2,4,4,4],[2,5,2,6]],
+	() => {next()},
+	(e) => {
+		console.error(`Error submitting grid: ${e.message}`)
+	}
+)})
+actions.push(function(){submitGrid(
+	player2, 
+	[[3,0,3,4],[4,1,4,4],[7,1,7,3],[2,3,2,5],[1,5,1,6]],
+	() => {next()},
+	(e) => {
+		console.error(`Error submitting grid: ${e.message}`)
+	}
+)})
+actions.push(function(){bombPosition(
+	player1,
+	3,
+	0,
+	(hit) => {
+		console.assert(hit, "incorrect hit response")
+		next()
+	},
+	(e) => {
+		console.error(`Error bombing: ${e.message}`)
+	}
+)})
+actions.push(function(){waitForYourTurn(
+	player2,
+	() => {next()},
+	(e) => {
+		console.error(`Error waiting for turn: ${e.message}`)
+	}
+)})
+actions.push(function(){bombPosition(
+	player2,
+	0,
+	0,
+	(hit) => {
+		console.assert(!hit, "incorrect hit response")
+		next()
+	},
+	(e) => {
+		console.error(`Error bombing: ${e.message}`)
+	}
+)})
+actions.push(function(){waitForYourTurn(
+	player1,
+	() => {next()},
+	(e) => {
+		console.error(`Error waiting for turn: ${e.message}`)
+	}
+)})
+actions.push(function(){bombPosition(
+	player1,
+	3,
+	0,
+	(hit) => {
+		console.error("Allowed bombing same location twice")
+		next(0)
+	},
+	(e) => {
+		next()
+	}
+)})
+//Finish bombing
+for(let j=0; j<7; j++){
+	for(let i=0;i<10;i++){
+		if(i!=3||j!=0){
+			actions.push(function(){bombPosition(
+				player1,
+				i,
+				j,
+				(hit) => {next()},
+				(e) => {
+					console.error(`Error bombing: ${e.message}`)
+				}
+			)})
+		}		
+		if(i==3&&j==0){
+			actions.push(function(){bombPosition(
+				player1,
+				9,
+				9,
+				(hit) => {next()},
+				(e) => {
+					console.error(`Error bombing: ${e.message}`)
+				}
+			)})
+		}
+		if(i==1&&j==6){
+			break
+		}
+		if(i!=0||j!=0){
+			actions.push(function(){bombPosition(
+				player2,
+				i,
+				j,
+				(hit) => {next()},
+				(e) => {
+					console.error(`Error bombing: ${e.message}`)
+					next()
+				}
+			)})
+		}
+		if(i==0&&j==0){
+			actions.push(function(){bombPosition(
+				player2,
+				9,
+				9,
+				(hit) => {next()},
+				(e) => {
+					console.error(`Error bombing: ${e.message}`)
+				}
+			)})
+		}
+	}
+}
+actions.push(function(){bombPosition(
+	player1,
+	7,
+	7,
+	(hit) => {
+		console.error('Allowed bombing after end of game')
+	},
+	(e) => {
+		next()
+	}
+)})
+actions.push(function(){getGameEnd(
+	player1,
+	(res) => {
+		console.assert(res.game_over, "Game was not finished when bombing ended")
+		console.assert(res.won, "Player one improperly marked as losing")
+		next()
+	},
+	(e) => {
+		console.error(`Error getting game end: ${e.message}`)
+	}
+)})
+actions.push(function(){getGameEnd(
+	player2,
+	(res) => {
+		console.assert(res.game_over, "Game was not finished when bombing ended")
+		console.assert(!res.won, "Player two improperly marked as winning")
+		document.getElementById('result').innerHTML='Test passed!'
+	},
+	(e) => {
+		console.error(`Error getting game end: ${e.message}`)
+	}
+)})
+
+next()
+</script>
+<p id="result">Test is running, check the console for errors</p>
