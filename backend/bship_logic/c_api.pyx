@@ -30,6 +30,7 @@ cdef public new_game_result bship_logic_new_game(const char *nickname):
     cdef new_game_result res
     res.gid = newgid
     res.pid = newpid
+    cull_inactive()
     return res
 
 cdef public int bship_logic_join_ai_game(const char *nickname, int difficulty):

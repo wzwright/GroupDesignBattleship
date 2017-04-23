@@ -16,7 +16,7 @@
 # License along with GroupDesignBattleship. If not, see
 # <http://www.gnu.org/licenses/>.
 
-import random, enum, types, sys, importlib
+import random, enum, types, sys, importlib, time
 
 class Error(enum.IntEnum):
     NO_SUCH_GAME = -1
@@ -51,6 +51,39 @@ class Game:
     def full(self):
         return (self.pid1 is not None) and (self.pid2 is not None)
 
+    def last_active(self):
+        def f(pid):
+            if pid not in players:
+                return 0
+            else:
+                return players[pid].last_active
+        return max([f(pid) for pid in [pid1, pid2]])
+
+_timeout = 300
+_maxgames = 100
+
+def cull_inactive():
+    "When more than _maxgames games exist, culls games inactive for >= _timeout seconds"
+    if not len(games) >= _maxgames:
+        return
+    now = time.time()
+    for gid, game in games:
+        if now - game.last_active() > _timeout:
+            del games[gid]
+
+    # We need to also cull players and respond to all of their
+    # notifications
+    for pid, player in players:
+        # If their game wasn't culled or they are active but just
+        # haven't joined a game yet, do nothing
+        if player.gid in games or now - player.last_active <= _timeout:
+            continue
+        if pid in pending_notifications:
+            for (waitstate, waitdata) in pending_notifications[pid]:
+                notification(pid, waitstate, waitdata, False)
+            del pending_notifications[pid]
+        del players[pid]
+
 # pid -> list of (state, user_data)
 pending_notifications = {}
 
@@ -72,9 +105,14 @@ class Player:
         self.bomb_history = [] # list of positions we have been bombed
                                # (including repeats, successes and
                                # failures)
+        update_timestamp()
+
+    def update_timestamp(self):
+        self.last_active = time.time()
 
     def opponent(self):
         "Finds the other player in this player's game"
+        update_timestamp()
         try:
             game = games[self.gid]
             if game.pid1 == self.pid:
@@ -87,6 +125,7 @@ class Player:
             return None
 
     def join(self, game):
+        update_timestamp()
         self.gid = game.gid
         if (game.pid1 is not None) and (game.pid2 is None):
             # We were the second player. Both players can now submit
@@ -104,19 +143,23 @@ class Player:
             raise GameFullException
 
     def set_grid(self, grid):
+        update_timestamp()
         self.grid = grid
         l = [points_occupied(ship) for ship in self.grid]
         self.ship_points = set([item for sublist in l for item in sublist])
 
     def bomb(self, x, y):
+        update_timestamp()
         self.bomb_history.append((x,y))
         return ((x,y) in self.ship_points)
 
     def dead(self):
+        update_timestamp()
         return self.ship_points.issubset(set(self.bomb_history))
 
     def set_state(self, state):
         "Changes state and notifies all waiting players"
+        update_timestamp()
         self.state_code = state
         if self.pid not in pending_notifications:
             # we weren't waiting for anything
