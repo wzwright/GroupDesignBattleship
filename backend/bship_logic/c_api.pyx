@@ -34,7 +34,6 @@ cdef public new_game_result bship_logic_new_game(const char *nickname):
     return res
 
 cdef public int bship_logic_join_ai_game(const char *nickname, int difficulty):
-    cdef new_game_result ng_res
     pid = gen_uniq_key(players)
     ai = AIPlayer.make(difficulty, pid)
     players[pid] = ai
@@ -42,6 +41,7 @@ cdef public int bship_logic_join_ai_game(const char *nickname, int difficulty):
     newgame = Game(gid)
     games[gid] = newgame
     ai.join(newgame)
+    cull_inactive()
     return bship_logic_join_game(gid, nickname)
 
 cdef public int bship_logic_join_random_game(const char *nickname):

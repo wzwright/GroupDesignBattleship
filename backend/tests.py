@@ -16,7 +16,7 @@
 # License along with GroupDesignBattleship. If not, see
 # <http://www.gnu.org/licenses/>.
 
-import unittest
+import unittest, time
 import bship_logic as b
 
 class Nicks:
@@ -357,3 +357,53 @@ class AITests(unittest.TestCase):
         while not me.dead():
             b.bomb_position(pid, 0, 0)
         # if this terminates, the test passes
+
+class CullInactiveTests(unittest.TestCase):
+    "Tests that cull_inactive culls old games"
+    def setUp(self):
+        # Reduce timeouts so we don't have to wait 5 mins for the test
+        # to finish
+        b._timeout = 2
+        b._maxgames = 5
+        b.games = {}
+        b.players = {}
+
+    def test_cull_inactive_ai(self):
+        for i in range(b._maxgames+1):
+            b.join_ai_game(b"", 1)
+        time.sleep(b._timeout+1)
+        b.join_ai_game(b"", 1)
+        self.assertEqual(len(b.games), 1)
+
+    def test_cull_inactive_normal(self):
+        for i in range(b._maxgames+1):
+            b.new_game(b"")
+        time.sleep(b._timeout+1)
+        b.new_game(b"")
+        self.assertEqual(len(b.games), 1)
+
+    def test_cull_notifications(self):
+        "Culling responds to notifications"
+        for i in range(b._maxgames):
+            b.new_game(b"")
+        (gid, pid) = b.new_game(b"")
+        b.request_notify(pid, b.PlayerState.GAME_OVER, None)
+        b.request_notify(pid, b.PlayerState.SUBMIT_GRID, None)
+        self.assertIn(pid, b.pending_notifications)
+        time.sleep(b._timeout+1)
+        b.new_game(b"")
+        # The game should have been culled and no dangling
+        # notifications should be left
+        self.assertNotIn(pid, b.pending_notifications)
+
+    def test_no_cull_below_maxgames(self):
+        "Doesn't cull old games when fewer than maxgames games exist"
+        for i in range(b._maxgames-2):
+            b.new_game(b"")
+        time.sleep(b._timeout+1)
+        b.new_game(b"")
+        self.assertEqual(len(b.games), b._maxgames-1)
+
+    def tearDown(self):
+        b._timeout = 300
+        b._maxgames = 100
