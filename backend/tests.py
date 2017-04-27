@@ -26,9 +26,7 @@ class Nicks:
 class ApiTests(unittest.TestCase):
     "Test the behaviour of the public API"
     def setUp(self):
-        "Clear the state of the game"
-        b.games = {}
-        b.players = {}
+        b.reset_state()
 
     def test_invalid_pid(self):
         "All API functions fail correctly if given a bad pid"
@@ -126,8 +124,7 @@ class ApiTests(unittest.TestCase):
 class PlayerTests(unittest.TestCase):
     "Test how player responds to {well,mal}formed environments"
     def setUp(self):
-        b.players = {}
-        b.games = {}
+        b.reset_state()
 
     def test_join_full(self):
         "Player.join fails if game is full"
@@ -167,8 +164,7 @@ class NotificationTests(unittest.TestCase):
     # pending one second then gone the next, it was replied to by
     # the C code, so everything is fine.
     def setUp(self):
-        b.players = {}
-        b.games = {}
+        b.reset_state()
 
     def test_notify_delayed_join(self):
         "Player gets notified when other player joins after some time"
@@ -212,9 +208,7 @@ class NotificationTests(unittest.TestCase):
 class StateTests(unittest.TestCase):
     "Test that the player's states are correct at all stages of the game"
     def setUp(self):
-        "Clear the state of the game"
-        b.games = {}
-        b.players = {}
+        b.reset_state()
 
     def test_normal_game(self):
         "state_codes are correct during a normal game, where one player wins"
@@ -263,8 +257,7 @@ class StateTests(unittest.TestCase):
 class BombTests(unittest.TestCase):
     "Test that bomb history and bomb errors are correct"
     def setUp(self):
-        b.players = {}
-        b.games = {}
+        b.reset_state()
 
     def test_bomb_pos_invalid(self):
         "bomb_position fails with bad arguments or if called too early"
@@ -317,8 +310,7 @@ class BombTests(unittest.TestCase):
 class AITests(unittest.TestCase):
     "Tests behaviour of AIs"
     def setUp(self):
-        b.players = {}
-        b.games = {}
+        b.reset_state()
 
     def test_example_ai_loses(self):
         "Example AI can play a game (and lose)"
@@ -365,8 +357,7 @@ class CullInactiveTests(unittest.TestCase):
         # to finish
         b._timeout = 2
         b._maxgames = 5
-        b.games = {}
-        b.players = {}
+        b.reset_state()
 
     def test_cull_inactive_ai(self):
         for i in range(b._maxgames+1):
@@ -402,7 +393,8 @@ class CullInactiveTests(unittest.TestCase):
             b.new_game(b"")
         time.sleep(b._timeout+1)
         b.new_game(b"")
-        self.assertEqual(len(b.games), b._maxgames-1)
+        # Games should still be in b.games
+        self.assertEqual(len(b.games), b._maxgames)
 
     def tearDown(self):
         b._timeout = 300

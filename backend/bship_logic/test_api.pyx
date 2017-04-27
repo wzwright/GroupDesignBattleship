@@ -68,3 +68,10 @@ def request_notify(pid, state, data_capsule):
     # data_capsule, this is solely a websockets thing, the unit tests
     # don't need to care about it
     return bship_logic_request_notify(pid, state, malloc(1))
+
+def reset_state():
+    "Resets the internal state of the game server (used before running a test)"
+    pending_notifications = {}
+    pending_games = {}
+    games = {}
+    players = {}
