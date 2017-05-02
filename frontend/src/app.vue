@@ -63,16 +63,12 @@ export default {
 html, body {
   padding: 0;
   margin: 0;
+  height: 100%;
 
   font-family: 'Roboto', 'Helvetica Neue', 'Calibri Light', sans-serif;
 }
 
 $footer-height: 30px;
-
-body {
-  /* so that the footer doesn't obscure text */
-  padding-bottom: $footer-height;
-}
 
 #footer {
   position: fixed;

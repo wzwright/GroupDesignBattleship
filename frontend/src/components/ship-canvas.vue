@@ -20,7 +20,7 @@
 
 <template>
   <div>
-    <div class="rightGridNumbers">
+    <div id="rightGridNumbers">
       <span v-for="n in 10">{{n}}</span>
     </div>
     <canvas ref="canvas" v-on:click="sendCoordToParent">
@@ -29,7 +29,7 @@
       {{bombsMissed}}
       {{bombTarget}}
     </canvas>
-    <div class="bottomGridChars">
+    <div id="bottomGridChars">
       <span v-for="n in 10">{{"ABCDEFGHIJ"[n-1]}}</span>
     </div>
   </div>
@@ -85,6 +85,24 @@ export default {
   methods: {
     // component methods
     setSize() {
+      // determine correct cellsize
+      const pageWidth = document.body.clientWidth
+      const numWidth = document.getElementById('rightGridNumbers').offsetWidth
+      // -2 for border
+      const spaceLeft = (pageWidth - numWidth) - 2
+      if (spaceLeft < this.grid.cellSize * this.grid.cells) {
+        this.grid.cellSize = Math.floor(spaceLeft / this.grid.cells)
+      }
+      // update numbers
+      const rightNums = document.getElementById('rightGridNumbers')
+      const bottomChars = document.getElementById('bottomGridChars')
+      const size = this.grid.cellSize * this.grid.cells
+      rightNums.style.height = `${size}px`
+      bottomChars.style.width = `${size}px`
+      console.log(this.grid.cellSize);
+
+
+      // sizing the canvas (thinking about high dpi screens)
       const width = (this.grid.cellSize * this.grid.cells) + 1
       const height = (this.grid.cellSize * this.grid.cells) + 1
       const ratio = window.devicePixelRatio || 1
@@ -94,6 +112,7 @@ export default {
       this.canvas.style.height = `${height}px`
       this.ctx.scale(ratio, ratio)
 
+      // redraw (since changing the canvas size clears it)
       this.drawGrid()
       this.drawAll()
     },
@@ -225,7 +244,7 @@ canvas {
 }
 
 $canvasSize: 10*32px;
-.rightGridNumbers {
+#rightGridNumbers {
   text-indent: 8px;
   float: right;
   height: $canvasSize;
@@ -238,7 +257,7 @@ $canvasSize: 10*32px;
   }
 }
 
-.bottomGridChars {
+#bottomGridChars {
   width: $canvasSize;
   display: flex;
   flex-direction: row;

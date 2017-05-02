@@ -20,6 +20,11 @@
 
 <template>
   <div id="ships-container">
+    <shipCanvas id="ship-canvas"
+      v-on:gridClicked="selectShip"
+      v-bind:ships="ships"
+      v-bind:bombs="bombs"
+    ></shipCanvas>
     <div id="ships">
       <button v-on:click="setActiveShip('carrier')" v-bind:class="selectionClass('carrier')">Carrier (5)</button>
       <button v-on:click="setActiveShip('battleship')" v-bind:class="selectionClass('battleship')">Battleship (4)</button>
@@ -29,11 +34,6 @@
       <button v-on:click="setActiveRotation()">rotate</button>
       <button id="submit" v-on:click="submitGrid">Submit</button>
     </div>
-    <shipCanvas id="ship-canvas"
-      v-on:gridClicked="selectShip"
-      v-bind:ships="ships"
-      v-bind:bombs="bombs"
-    ></shipCanvas>
   </div>
 </template>
 
@@ -102,35 +102,64 @@ export default {
 </script>
 
 <style lang="scss">
+/* mobile first */
 #ships-container {
+  height: 100%;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-around;
 }
 
 #ships {
-  width: 200px - 10px;
   padding: 10px;
   display: flex;
   flex-direction: column;
+  justify-content: space-around;
+
+  width: calc(100% - 20px);
+  max-width: 400px;
+  flex-grow: 1;
 
   button {
     width: 100%;
+    flex-grow: 1;
     margin: 3px auto;
+
+    border: 1px solid #aaa;
+    background-color: #fdfdfd;
+    cursor: pointer;
+
+    &.placed {
+      color: #aaa;
+    }
+
+    &.notPlaced {
+      color: #000;
+    }
   }
 }
 
 #ship-canvas {
-  /*
-   * using margin rather than padding is important
-   * since 'getBoundingClientRect' is affected
-   */
-  margin: 20px;
+  margin: 20px auto 10px auto;
 }
 
-.placed {
-  color:green;
-}
-.notPlaced{
-  color:red;
+/* progressive media queries */
+@media (min-width: 720px) {
+  #ships-container {
+    flex-direction: row;
+    justify-content: center;
+  }
+
+  #ships {
+    width: 200px;
+    flex: 0 1 auto;
+
+    height: 250px;
+  }
+
+  #ship-canvas {
+    margin: 20px;
+  }
 }
 </style>

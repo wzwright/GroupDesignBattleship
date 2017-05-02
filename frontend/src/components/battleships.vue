@@ -19,7 +19,7 @@
  */
 
 <template>
-  <div>
+  <div id="battleships">
     <shipSelector v-if="show === 'shipSelector'"
       v-on:changeScreen="changeScreen"></shipSelector>
     <bombingScreen v-if="show === 'bombingScreen'"
@@ -51,8 +51,7 @@ export default {
 </script>
 
 <style lang="scss">
-canvas {
-  width: 100vw;
-  height: 100vh;
+#battleships {
+  height: 100%;
 }
 </style>
