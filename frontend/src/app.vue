@@ -22,7 +22,7 @@
   <div id="app">
     <startOverlay v-show="gameState === 'start'" v-on:startGame="startGame"></startOverlay>
     <battleships v-show="gameState === 'battleships'"></battleships>
-    <div id="footer">
+    <div id="footer" v-show="gameState === 'start'">
       <a href="https://github.com/wzwright/GroupDesignBattleship">
         <img src="./components/assets/GitHub-Mark-32px.png" alt="github logo" width="16" height="16" />
         <span>Find us on GitHub!</span>
