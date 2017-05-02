@@ -45,7 +45,7 @@ export default {
       this.$store.dispatch('joinAIGame', {
         AILevel,
         okCallback: () => {
-          this.$emit('changeScreen', 'noOverlay')
+          this.$emit('changeScreen', 'game')
         },
       })
     },

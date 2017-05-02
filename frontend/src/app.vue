@@ -20,8 +20,8 @@
 
 <template>
   <div id="app">
-    <startOverlay></startOverlay>
-    <battleships></battleships>
+    <startOverlay v-show="gameState === 'start'" v-on:startGame="startGame"></startOverlay>
+    <battleships v-show="gameState === 'battleships'"></battleships>
     <div id="footer">
       <a href="https://github.com/wzwright/GroupDesignBattleship">
         <img src="./components/assets/GitHub-Mark-32px.png" alt="github logo" width="16" height="16" />
@@ -40,6 +40,16 @@ export default {
   components: {
     startOverlay,
     battleships,
+  },
+  data() {
+    return {
+      gameState: 'start',
+    }
+  },
+  methods: {
+    startGame() {
+      this.gameState = 'battleships'
+    },
   },
 }
 </script>

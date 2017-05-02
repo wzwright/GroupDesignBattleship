@@ -55,7 +55,7 @@ export default {
         this.$store.dispatch('joinGame', {
           gameID: code,
           okCallback: () => {
-            this.$emit('changeScreen', 'noOverlay')
+            this.$emit('changeScreen', 'game')
           },
           errorCallback: () => {
             // TODO: tell the user something went wrong

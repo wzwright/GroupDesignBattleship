@@ -19,7 +19,7 @@
  */
 
 <template>
-  <div id="overlay" v-if="show !== 'noOverlay'">
+  <div id="overlay">
     <div id="container">
       <startScreen v-if="show === 'start'" v-on:changeScreen="changeScreen"></startScreen>
       <newGameScreen v-if="show === 'newGame'" v-on:changeScreen="changeScreen"></newGameScreen>
@@ -53,7 +53,11 @@ export default {
   },
   methods: {
     changeScreen(screen) {
-      this.show = screen
+      if (screen === 'game') {
+        this.$emit('startGame')
+      } else {
+        this.show = screen
+      }
     },
   },
 }

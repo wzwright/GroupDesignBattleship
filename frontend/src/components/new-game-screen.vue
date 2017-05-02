@@ -43,7 +43,7 @@ export default {
   mounted() {
     this.$store.dispatch('waitForPlayer', {
       okCallback: () => {
-        this.$emit('changeScreen', 'noOverlay')
+        this.$emit('changeScreen', 'game')
       },
     })
   },
