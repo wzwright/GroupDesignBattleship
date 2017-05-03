@@ -251,6 +251,8 @@ static void handle_request(struct lws *wsi, struct per_session_data__battleship 
 			pstate = BOMB;
 		else if(strcmp(method, "waitForGameEnd") == 0)
 			pstate = GAME_OVER;
+		else if(strcmp(method, "waitForGameDied") == 0)
+			pstate = GAME_DIED;
 		else {
 			DIE(id, -32601, "Method not found", NULL);
 			return;
