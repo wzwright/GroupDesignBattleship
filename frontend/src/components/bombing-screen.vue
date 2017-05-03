@@ -51,6 +51,7 @@
       <p v-if="phase === 'wait'">Waiting for your opponent...</p>
       <p v-if="phase === 'gameOver' && won">You win!</p>
       <p v-if="phase === 'gameOver' && !won">You lose!</p>
+      <a v-if="phase === 'gameOver'" href="/" id="playAgain">Play again</a>
     </div>
   </div>
 </template>
@@ -232,5 +233,17 @@ export default {
 
 .playerShipContainer {
   padding-bottom: 6em;
+}
+
+#playAgain {
+  border: 1px solid #173d7a;
+  background: linear-gradient(0deg, #5f91e2, #156faf);
+  color: #eee;
+  padding: 0.5em 1em;
+  font-size: 1.3em;
+  border-radius: 3px;
+  text-decoration: none;
+  margin: 1em;
+  display: inline-block;
 }
 </style>
