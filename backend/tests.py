@@ -396,6 +396,31 @@ class CullInactiveTests(unittest.TestCase):
         # Games should still be in b.games
         self.assertEqual(len(b.games), b._maxgames)
 
+    def test_cull_dead(self):
+        "Culls disconnected/dead games"
+        (gid, pid) = b.new_game(b"")
+        self.assertIn(gid, b.games)
+        b.disconnect(pid)
+        b.new_game(b"")
+        self.assertNotIn(gid, b.games)
+
     def tearDown(self):
         b._timeout = 300
         b._maxgames = 100
+
+class DisconnectTests(unittest.TestCase):
+    def setUp(self):
+        b.reset_state()
+
+    def test_disconnect_notifies(self):
+        "Opponent is notified when you disconnect"
+        (gid, pid1) = b.new_game(b"")
+        pid2 = b.join_game(gid, b"")
+        b.request_notify(pid2, b.PlayerState.GAME_DIED, None)
+        self.assertIn(pid2, b.pending_notifications)
+        self.assertIn(b.PlayerState.GAME_DIED,
+                      [state for (state,x) in b.pending_notifications[pid2]])
+        b.disconnect(pid1)
+        # Check notification has been responded to
+        self.assertNotIn(b.PlayerState.GAME_DIED,
+                         [state for (state,x) in b.pending_notifications[pid2]])

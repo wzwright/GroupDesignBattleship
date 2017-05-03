@@ -195,3 +195,19 @@ cdef public int bship_logic_request_notify(int pid, int state, void* rdata):
         else:
             pending_notifications[pid] = [(state, data)]
     return 0
+
+cdef public int bship_logic_disconnect(int pid):
+    "Disconnect player and kill all associated games"
+    if pid not in players:
+        return Error.INVALID_PLYR_ID
+    player = players[pid]
+    if player.gid is None:
+        # There's no game to disconnect them from
+        return 0
+    game = games[player.gid]
+    game.dead = True
+    player.set_state(PlayerState.GAME_DIED)
+    opponent = player.opponent()
+    if opponent is not None:
+        opponent.set_state(PlayerState.GAME_DIED)
+    return 0

@@ -35,6 +35,7 @@ class PlayerState(enum.IntEnum):
     BOMB = 3
     WAIT_FOR_BOMB = 4
     GAME_OVER = 5
+    GAME_DIED = 6
 
 class GameFullException(Exception):
     pass
@@ -47,6 +48,7 @@ class Game:
         self.gid = gid
         self.pid1 = None
         self.pid2 = None
+        self.dead = False
 
     def full(self):
         return (self.pid1 is not None) and (self.pid2 is not None)
@@ -63,12 +65,12 @@ _timeout = 300
 _maxgames = 100
 
 def cull_inactive():
-    "When more than _maxgames games exist, culls games inactive for > _timeout seconds"
+    "Culls inactive and dead games"
     if len(games) <= _maxgames:
         return
     now = time.time()
     for gid, game in list(games.items()):
-        if now - game.last_active() > _timeout:
+        if (now - game.last_active() > _timeout) or game.dead:
             del games[gid]
 
     # We need to also cull players and respond to all of their
