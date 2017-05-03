@@ -42,6 +42,7 @@
 struct per_session_data__battleship {
 	json_t *pending_replies[100];
 	int pending_replies_count;
+	plyr_id pid;
 };
 
 struct notification_user_data {
@@ -155,6 +156,7 @@ static void handle_request(struct lws *wsi, struct per_session_data__battleship 
 		if(strlen(nick) > 100)
 			DIE_ON_ERROR(ERR_NICKNAME_TOO_LONG);
 		ng_result = bship_logic_new_game(nick);
+		pss->pid = ng_result.pid;
 		REPLY(croaking_json_pack("[ii]", ng_result.gid, ng_result.pid));
 	} else if(strcmp(method, "joinAIGame") == 0) {
 		EXPECT_PARAMS(2);
@@ -166,6 +168,7 @@ static void handle_request(struct lws *wsi, struct per_session_data__battleship 
 		int difficulty = json_integer_value(json_array_get(params, 1));
 		pid = bship_logic_join_ai_game(nick, difficulty);
 		DIE_ON_ERROR(pid);
+		pss->pid = pid;
 		REPLY(json_integer(pid));
 	} else if(strcmp(method, "joinRandomGame") == 0) {
 		EXPECT_PARAMS(1);
@@ -176,6 +179,7 @@ static void handle_request(struct lws *wsi, struct per_session_data__battleship 
 			DIE_ON_ERROR(ERR_NICKNAME_TOO_LONG);
 		pid = bship_logic_join_random_game(nick);
 		DIE_ON_ERROR(pid);
+		pss->pid = pid;
 		REPLY(json_integer(pid));
 	} else if(strcmp(method, "joinGame") == 0) {
 		EXPECT_PARAMS(2);
@@ -191,6 +195,7 @@ static void handle_request(struct lws *wsi, struct per_session_data__battleship 
 		EXPECT_PARAMS(1);
 		result = bship_logic_get_opponent_nickname((plyr_id)PARAM_ID, &nickname);
 		DIE_ON_ERROR(result);
+		pss->pid = (plyr_id)PARAM_ID;
 		REPLY(json_string(nickname));
 	} else if(strcmp(method, "submitGrid") == 0) {
 		EXPECT_PARAMS(2);
@@ -203,6 +208,7 @@ static void handle_request(struct lws *wsi, struct per_session_data__battleship 
 		}
 		result = bship_logic_submit_grid((plyr_id)PARAM_ID, grd);
 		DIE_ON_ERROR(result);
+		pss->pid = (plyr_id)PARAM_ID;
 		REPLY(json_null());
 	} else if(strcmp(method, "getBombedPositions") == 0) {
 		EXPECT_PARAMS(1);
@@ -212,6 +218,7 @@ static void handle_request(struct lws *wsi, struct per_session_data__battleship 
 		for(x = 0 ; x < N ; x++)
 			json_array_append_new(bombsJ, croaking_json_pack("[ii]", bombs[2 * x], bombs[2 * x + 1]));
 		free(bombs);
+		pss->pid = (plyr_id)PARAM_ID;
 		REPLY(bombsJ);
 	} else if(strcmp(method, "bombPosition") == 0) {
 		EXPECT_PARAMS(3);
@@ -220,6 +227,7 @@ static void handle_request(struct lws *wsi, struct per_session_data__battleship 
 		y = json_integer_value(json_array_get(params, 2));
 		result = bship_logic_bomb_position(pid, x, y);
 		DIE_ON_ERROR(result);
+		pss->pid = (plyr_id)PARAM_ID;
 		REPLY(json_boolean(result));
 	} else if(strcmp(method, "getGameEnd") == 0) {
 		EXPECT_PARAMS(1);
@@ -233,6 +241,7 @@ static void handle_request(struct lws *wsi, struct per_session_data__battleship 
 			}
 		} else /* grid contains junk on game_over = false, send a NULL instead */
 			grid_param = json_null();
+		pss->pid = (plyr_id)PARAM_ID;
 		REPLY(croaking_json_pack("{s: b, s: b, s: o}", "game_over", gge_result.game_over, "won", gge_result.won, "grid", grid_param));
 	} else if(strncmp(method, "waitFor", 7) == 0) {
 		EXPECT_PARAMS(1);
@@ -257,6 +266,7 @@ static void handle_request(struct lws *wsi, struct per_session_data__battleship 
 			free(notify_user);
 			DIE_ON_ERROR(result);
 		}
+		pss->pid = (plyr_id)PARAM_ID;
 	} else if(strcmp(method, "getSource") == 0){
 		EXPECT_PARAMS(0);
 		REPLY(json_string("https://github.com/wzwright/GroupDesignBattleship/"));
@@ -284,12 +294,18 @@ static int callback_bship(struct lws *wsi, enum lws_callback_reasons reason, voi
 	case LWS_CALLBACK_ESTABLISHED:
 		valid_pss = stb_ps_add(valid_pss, pss);
 		pss->pending_replies_count = 0;
+		pss->pid = 0;
 		break;
 
 	case LWS_CALLBACK_CLOSED:
 		valid_pss = stb_ps_remove(valid_pss, pss);
 		for(i = 0; i < pss->pending_replies_count ; i++)
 			json_decref(pss->pending_replies[i]);
+		if(pss->pid) {
+			lwsl_notice("Client with plyr_id %d disconnected", pss->pid);
+			bship_logic_disconnect(pss->pid);
+		} else
+			lwsl_notice("Client with no plyr_id disconnected");
 		break;
 
 	case LWS_CALLBACK_SERVER_WRITEABLE:

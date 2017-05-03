@@ -70,7 +70,9 @@ typedef enum {
 	/** Waiting for other player to bomb */
 	WAIT_FOR_BOMB,
 	/** Someone won the game */
-	GAME_OVER
+	GAME_OVER,
+	/** Someone joined and then left the game */
+	GAME_DIED
 } plyr_state;
 
 
@@ -138,6 +140,10 @@ int bship_logic_join_ai_game(const char* nickname, int difficulty);
  * opponent. Returns your player ID.
  */
 int bship_logic_join_random_game(const char* nickname);
+
+/** Disconnects a player from the server. Associated games should be
+ * cancelled. */
+void bship_logic_disconnect(plyr_id);
 
 /** Get the opponent's nickname. Returns 0 on sucess, negative on
  * error. Nickname must not be modified or freed by caller. */
