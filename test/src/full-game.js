@@ -18,13 +18,13 @@ actions.push(() => {
     'p1',
     ([gameID, playerID]) => {
       game = gameID
-      player1 = playerID
-      next()
+      player1 = playerID      
     },
     (e) => {
       console.error(`Error creating new game: ${e.message}`)
     },
-)
+  )
+  next()
 })
 actions.push(() => {
   api.joinGame(
@@ -221,7 +221,7 @@ actions.push(() => {
     (res) => {
       console.assert(res.game_over, 'Game was not finished when bombing ended')
       console.assert(!res.won, 'Player two improperly marked as winning')
-      document.getElementById('result').innerHTML = 'Test passed!'
+      console.log('full-game passed');
     },
     (e) => {
       console.error(`Error getting game end: ${e.message}`)
