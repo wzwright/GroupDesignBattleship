@@ -404,6 +404,20 @@ class CullInactiveTests(unittest.TestCase):
         b.new_game(b"")
         self.assertNotIn(gid, b.games)
 
+    def test_no_early_cull_dead(self):
+        "Don't cull games before _both_ players leave"
+        (gid, pid1) = b.new_game(b"")
+        pid2 = b.join_game(gid, b"")
+        self.assertIn(gid, b.games)
+        b.disconnect(pid1)
+        b.cull_inactive()
+        # 1 player left: game should not be culled
+        self.assertIn(gid, b.games)
+        b.disconnect(pid2)
+        b.cull_inactive()
+        # 2 players left: should have been culled
+        self.assertNotIn(gid, b.games)
+
     def tearDown(self):
         b._timeout = 300
         b._maxgames = 100

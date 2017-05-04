@@ -48,7 +48,7 @@ class Game:
         self.gid = gid
         self.pid1 = None
         self.pid2 = None
-        self.dead = False
+        self.playersquit = 0
 
     def full(self):
         return (self.pid1 is not None) and (self.pid2 is not None)
@@ -66,11 +66,12 @@ _maxgames = 100
 
 def cull_inactive():
     "Culls inactive and dead games"
-    if len(games) <= _maxgames:
-        return
+    ngames = len(games)
     now = time.time()
     for gid, game in list(games.items()):
-        if (now - game.last_active() > _timeout) or game.dead:
+        # We want to delete inactive games only if there are too many
+        # but we want to delete dead games regardless
+        if (now - game.last_active() > _timeout and ngames > _maxgames) or (game.playersquit == 2):
             del games[gid]
 
     # We need to also cull players and respond to all of their

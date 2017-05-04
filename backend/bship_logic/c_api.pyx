@@ -205,9 +205,13 @@ cdef public int bship_logic_disconnect(int pid):
         # There's no game to disconnect them from
         return 0
     game = games[player.gid]
-    game.dead = True
+    game.playersquit += 1
     player.set_state(PlayerState.GAME_DIED)
     opponent = player.opponent()
     if opponent is not None:
         opponent.set_state(PlayerState.GAME_DIED)
+    else:
+        # There was never any opponent and the game is dead, we should
+        # treat this as if both players left
+        game.playersquit = 2
     return 0
