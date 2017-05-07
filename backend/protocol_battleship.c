@@ -90,7 +90,7 @@ static void send_json_rpc(struct lws *wsi, struct per_session_data__battleship *
 			json_string_value(json_object_get(error, "message")),
 			buf);
 	} else if(json_object_get(payload, "result") != NULL) {
-		buf = json_dumps(json_object_get(payload, "result"), JSON_ENSURE_ASCII | JSON_SORT_KEYS);
+		buf = json_dumps(json_object_get(payload, "result"), JSON_ENSURE_ASCII | JSON_SORT_KEYS | JSON_ENCODE_ANY);
 		lwsl_notice("%s < %s", peername, buf);
 	}
 	free(buf);
