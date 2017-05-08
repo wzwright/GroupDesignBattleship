@@ -22,8 +22,10 @@ class AIPlayer(Player, ABC):
     def make(difficulty, pid):
         if difficulty <= 0:
             return ExampleAIPlayer(pid)
-        elif difficulty >= 1:
+        elif difficulty == 1:
             return RandomAIPlayer(pid)
+        elif difficulty >= 2:
+            return ImprovedAIPlayer(pid)
 
     def __init__(self, pid):
         super(AIPlayer, self).__init__(pid, "AI Player")
@@ -47,7 +49,6 @@ class AIPlayer(Player, ABC):
     def ai_bomb(self):
         pass
 
-    @abstractmethod
     def ai_cleanup(self):
         pass
 
@@ -65,9 +66,6 @@ class ExampleAIPlayer(AIPlayer):
     def ai_bomb(self):
         # bombs (0,0) every time
         bship_logic_bomb_position(self.pid, 0, 0)
-
-    def ai_cleanup(self):
-        pass
 
 class RandomAIPlayer(AIPlayer):
     "Bombs random positions"
@@ -88,6 +86,85 @@ class RandomAIPlayer(AIPlayer):
             to_bomb = (random.randint(0,9), random.randint(0,9))
         bship_logic_bomb_position(self.pid, to_bomb[0], to_bomb[1])
 
-    def ai_cleanup(self):
-        pass
+class ImprovedAIPlayer(AIPlayer):
+    "Board colouring and following"
 
+    def __init__(self, pid):
+        super(ImprovedAIPlayer, self).__init__(pid)
+        self.DIRECTIONS = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+
+        self.favourite_colour = random.randint(0, 3)
+        self.initial_moves = [(x,y) for x in range(10) for y in range(10) if (x+y) % 4 == self.favourite_colour]
+        random.shuffle(self.initial_moves)
+
+        self.found4 = False
+        self.found5 = False
+        self.added_extra_moves = False
+        self.following = False
+        self.base = (0, 0)
+        self.index = (0, 0)
+        self.hits = [0, 0, 0, 0]
+        self.direction = 0
+
+    def ai_submit_grid(self):
+        super(ImprovedAIPlayer,self).ai_submit_grid()
+        # TODO: Make this actually random
+        mygrid = [[0,0,1,0]
+                 ,[0,1,2,1]
+                 ,[0,2,2,2]
+                 ,[0,3,3,3]
+                 ,[0,4,4,4]]
+        bship_logic_submit_grid(self.pid, python_to_grid(mygrid))
+
+    def advance_direction(self):
+        if self.direction == 3:
+            self.following = False
+            length = max(self.hits[0] + self.hits[1], self.hits[2] + self.hits[3])
+            if length + 1 == 4: self.found4 = True
+            if length + 1 == 5: self.found5 = True
+            if self.found4 and self.found5 and not self.added_extra_moves:
+                self.initial_moves = [(x,y) for x in range(10) for y in range(10) if (x+y) % 4 == (self.favourite_colour + 2) % 4]
+                self.added_extra_moves = True
+        else:
+            self.direction += 1
+            print("Direction is not 3. After increment direction is " + str(self.direction))
+            self.index = self.DIRECTIONS[self.direction]
+
+    def ai_bomb(self):
+        bombed = False
+        opp = self.opponent()
+        def maybe_bomb(target):
+            nonlocal bombed
+            if target in opp.bomb_history:
+                # If we bombed this cell before, recall the result
+                hit = target in opp.ship_points
+            else:
+                # Otherwise we actually bomb it
+                hit = bship_logic_bomb_position(self.pid, target[0], target[1])
+                print("Actually bombing " + str(target[0]) + ", " + str(target[1]))
+                bombed = True
+            return hit
+        while not bombed:
+            if self.following:
+                target = (self.base[0] + self.index[0], self.base[1] + self.index[1])
+                print("Following! Target is " + str(target[0]) + "," + str(target[1]) + " (dir " + str(self.direction) + ")")
+                if bad_target(target[0], target[1]):
+                    self.advance_direction()
+                else:
+                    hit = maybe_bomb(target)
+                    print("Bomb is " + str(hit))
+                    if hit:
+                        self.index = (self.index[0] + self.DIRECTIONS[self.direction][0], self.index[1] + self.DIRECTIONS[self.direction][1])
+                        self.hits[self.direction] = self.hits[self.direction] + 1
+                    else:
+                        print("Advancing direction!")
+                        self.advance_direction()
+            else:
+                target = self.initial_moves.pop()
+                print(self.initial_moves)
+                if maybe_bomb(target):
+                    self.following = True
+                    self.base = target
+                    self.index = (0, 0)
+                    self.hits = [0, 0, 0, 0]
+                    self.direction = 0
