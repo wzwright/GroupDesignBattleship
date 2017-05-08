@@ -35,8 +35,8 @@ export default {
   data() {
     return {
       levels: [
-        { name: 'Example', code: 0 },
         { name: 'Easy', code: 1},
+        { name: 'Medium', code: 2},
       ]
     }
   },
