@@ -123,7 +123,8 @@ class ImprovedAIPlayer(AIPlayer):
             if length + 1 == 4: self.found4 = True
             if length + 1 == 5: self.found5 = True
             if self.found4 and self.found5 and not self.added_extra_moves:
-                self.initial_moves = [(x,y) for x in range(10) for y in range(10) if (x+y) % 4 == (self.favourite_colour + 2) % 4]
+                self.initial_moves.append([(x,y) for x in range(10) for y in range(10) if (x+y) % 4 == (self.favourite_colour + 2) % 4])
+                random.shuffle(self.initial_moves)
                 self.added_extra_moves = True
         else:
             self.direction += 1
