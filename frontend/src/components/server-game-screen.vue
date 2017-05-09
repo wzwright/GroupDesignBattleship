@@ -31,13 +31,13 @@
 
 <script>
 export default {
-  name: "server-game-screen",
+  name: 'server-game-screen',
   data() {
     return {
       levels: [
-        { name: 'Easy', code: 1},
-        { name: 'Medium', code: 2},
-      ]
+        { name: 'Easy', code: 1 },
+        { name: 'Hard', code: 2 },
+      ],
     }
   },
   methods: {
