@@ -124,7 +124,7 @@ export default {
   button {
     width: 100%;
     flex-grow: 1;
-    margin: 3px auto;
+    margin: 1px auto;
 
     border: 1px solid #aaa;
     background-color: #fdfdfd;
@@ -156,6 +156,10 @@ export default {
     flex: 0 1 auto;
 
     height: 250px;
+
+    button {
+      margin: 3px auto;
+    }
   }
 
   #ship-canvas {
