@@ -207,7 +207,7 @@ export default {
 .shipContainer {
   display: inline-flex;
   flex-direction: column;
-  margin: 1em 3em;
+  margin: 1em;
 
   button {
     display: block;
@@ -225,6 +225,11 @@ export default {
 
 .message {
   text-align: center;
+  position: fixed;
+  bottom: 0;
+  border-top: 1px solid #444;
+  background-color: white;
+  width: 100%;
 
   p {
     margin: 0.5em auto;
@@ -245,5 +250,13 @@ export default {
   text-decoration: none;
   margin: 1em;
   display: inline-block;
+}
+
+/* progressive media queries */
+@media (min-width: 765px) {
+  .message {
+    position: relative;
+    border: none;
+  }
 }
 </style>
