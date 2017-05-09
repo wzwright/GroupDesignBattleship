@@ -1,4 +1,4 @@
-/**
+
  * Copyright (C) 2017 by Oxford 2017 Group Design Practical Team 9
  *
  * This file is part of GroupDesignBattleship.
@@ -75,6 +75,9 @@ export default {
   mounted() {
     this.canvas = this.$refs.canvas
     this.ctx = this.canvas.getContext('2d')
+    this.ctx.mozImageSmoothingEnabled = false
+    this.ctx.webkitImageSmoothingEnabled = false
+    this.ctx.msImageSmoothingEnabled = false
     this.ctx.imageSmoothingEnabled = false
     this.preloadSprites()
       .then(this.setSize)
@@ -99,7 +102,6 @@ export default {
       const size = this.grid.cellSize * this.grid.cells
       rightNums.style.height = `${size}px`
       bottomChars.style.width = `${size}px`
-      console.log(this.grid.cellSize);
 
 
       // sizing the canvas (thinking about high dpi screens)
@@ -241,6 +243,7 @@ export default {
 <style lang="scss">
 canvas {
   border: 1px solid black;
+  image-rendering: pixelated;
 }
 
 $canvasSize: 10*32px;
