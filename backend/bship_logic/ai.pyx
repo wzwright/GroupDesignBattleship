@@ -32,6 +32,7 @@ class AIPlayer(Player, ABC):
 
     def set_state(self, state):
         super(AIPlayer, self).set_state(state)
+        print("Setting state: " + str(state))
         # in addition to setting the state, we also actually do the
         # action our new state allows us to perform
         if state == PlayerState.SUBMIT_GRID:
@@ -111,8 +112,7 @@ class ImprovedAIPlayer(AIPlayer):
         self.initial_moves = [(x,y) for x in range(10) for y in range(10) if (x+y) % 4 == self.favourite_colour]
         random.shuffle(self.initial_moves)
 
-        self.found4 = False
-        self.found5 = False
+        self.found45 = 0
         self.added_extra_moves = False
         self.following = False
         self.base = (0, 0)
@@ -128,10 +128,10 @@ class ImprovedAIPlayer(AIPlayer):
         if self.direction == 3:
             self.following = False
             length = max(self.hits[0] + self.hits[1], self.hits[2] + self.hits[3])
-            if length + 1 == 4: self.found4 = True
-            if length + 1 == 5: self.found5 = True
-            if self.found4 and self.found5 and not self.added_extra_moves:
-                self.initial_moves.append([(x,y) for x in range(10) for y in range(10) if (x+y) % 4 == (self.favourite_colour + 2) % 4])
+            self.found45 += (length + 1) // 4
+            if self.found45 >= 2 and not self.added_extra_moves:
+                print("ADDING EXTRA MOVES!")
+                self.initial_moves += [(x,y) for x in range(10) for y in range(10) if (x+y) % 4 == (self.favourite_colour + 2) % 4]
                 random.shuffle(self.initial_moves)
                 self.added_extra_moves = True
         else:
@@ -142,6 +142,7 @@ class ImprovedAIPlayer(AIPlayer):
     def ai_bomb(self):
         bombed = False
         opp = self.opponent()
+        print("Requested to bomb")
         def maybe_bomb(target):
             nonlocal bombed
             if target in opp.bomb_history:
@@ -149,8 +150,8 @@ class ImprovedAIPlayer(AIPlayer):
                 hit = target in opp.ship_points
             else:
                 # Otherwise we actually bomb it
-                hit = bship_logic_bomb_position(self.pid, target[0], target[1])
                 print("Actually bombing " + str(target[0]) + ", " + str(target[1]))
+                hit = bship_logic_bomb_position(self.pid, target[0], target[1])
                 bombed = True
             return hit
         while not bombed:
