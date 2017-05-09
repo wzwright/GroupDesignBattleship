@@ -293,7 +293,6 @@ export default new Vuex.Store({
         },
       )
     },
-    // Note: not actually used
     waitForGameEnd({ dispatch, state }, { okCallback, errorCallback }) {
       api.waitForGameEnd(
         state.player.ID,

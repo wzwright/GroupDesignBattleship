@@ -142,11 +142,25 @@ export default {
     },
   },
   mounted() {
+    this.$store.dispatch('waitForGameEnd', {
+      okCallback: () => {
+        this.$store.dispatch('getGameEnd', {
+          okCallback: ({ won }) => {
+            this.won = won
+            this.phase = 'gameOver'
+          },
+        })
+      },
+    })
     this.waitForYourTurn()
   },
   methods: {
     bombSelect({ x, y }) {
       this.bombTarget = [x, y]
+    },
+    changePhase(newPhase) {
+      if (this.phase === 'gameOver') return
+      this.phase = newPhase
     },
     bombSubmit() {
       this.$store.dispatch('bombPosition', {
@@ -154,42 +168,24 @@ export default {
         okCallback: (bombSucceeded) => {
           if (bombSucceeded) {
             this.bombsHitByPlayer.push(this.bombTarget)
-            this.$store.dispatch('getGameEnd', {
-              okCallback: ({ gameOver, won }) => {
-                if (gameOver) {
-                  this.won = won
-                  this.phase = 'gameOver'
-                } else {
-                  this.waitForYourTurn()
-                }
-              },
-            })
           } else {
             this.bombsMissedByPlayer.push(this.bombTarget)
-            this.waitForYourTurn()
           }
+
+          this.waitForYourTurn()
         },
       })
     },
     waitForYourTurn() {
-      this.phase = 'wait'
+      this.changePhase('wait')
       this.bombTarget = []
       this.$store.dispatch('waitForYourTurn', {
         okCallback: () => {
           this.$store.dispatch('getBombedPositions', {
             okCallback: () => {
               this.bombsByOpponent = this.$store.state.player.bombs
-              this.$store.dispatch('getGameEnd', {
-                okCallback: ({ gameOver, won }) => {
-                  if (gameOver) {
-                    this.won = won
-                    this.phase = 'gameOver'
-                  } else {
-                    this.phase = 'bomb'
-                    this.turnNumber += 1
-                  }
-                },
-              })
+              this.turnNumber += 1
+              this.changePhase('bomb')
             },
           })
         },
