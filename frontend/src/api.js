@@ -118,3 +118,8 @@ export function waitForYourTurn(playerID, okCallback, errorCallback) {
 export function waitForGameEnd(playerID, okCallback, errorCallback) {
   doRPC('waitForGameEnd', [playerID], okCallback, errorCallback)
 }
+
+// Takes a playerID, returns when the game has died.
+export function waitForGameDied(playerID, okCallback, errorCallback) {
+  doRPC('waitForGameDied', [playerID], okCallback, errorCallback)
+}
