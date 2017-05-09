@@ -52,12 +52,22 @@ export default {
 <style lang="scss">
 .textInput {
   margin-bottom: 1em;
+  display: flex;
+  align-items: center;
 
   label {
     font-size: 0.8em;
     color: #444;
     font-weight: bold;
     margin-left: 0.4em;
+    padding-right: 5px;
+  }
+
+  input {
+    padding: 2px;
+    flex-grow: 1;
+    flex-shrink: 1;
+    width: 50px;
   }
 
   p {

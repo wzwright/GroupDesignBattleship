@@ -20,12 +20,12 @@
 
 <template>
   <div id="overlay">
+    <h1>Battleships.</h1>
     <div id="container">
       <startScreen v-if="show === 'start'" v-on:changeScreen="changeScreen"></startScreen>
       <newGameScreen v-if="show === 'newGame'" v-on:changeScreen="changeScreen"></newGameScreen>
       <joinGameScreen v-if="show === 'joinGame'" v-on:changeScreen="changeScreen"></joinGameScreen>
       <serverGameScreen v-if="show === 'serverGame'" v-on:changeScreen="changeScreen"></serverGameScreen>
-      <randomGameScreen v-if="show === 'randomGame'" v-on:changeScreen="changeScreen"></randomGameScreen>
     </div>
   </div>
 </template>
@@ -69,16 +69,23 @@ export default {
   width: 100%;
   height: 100%;
   display: flex;
+  flex-direction: column;
   justify-content: center;
+  align-items: center;
+
+  h1 {
+    text-align: center;
+    margin-top: 0;
+  }
 }
 
 #container {
   align-self: center;
   width: 50%;
   max-width: 300px;
-  padding: 1em;
+  padding: 1.5em;
   border: 1px solid #777;
-  box-shadow: 0 0 5px rgba(0,0,0,0.5);
+  border-bottom-width: 10px;
   background-color: white;
 }
 </style>
