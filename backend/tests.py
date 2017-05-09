@@ -350,6 +350,15 @@ class AITests(unittest.TestCase):
             b.bomb_position(pid, 0, 0)
         # if this terminates, the test passes
 
+    def test_random_ai_place(self):
+        "Random AI places validly and randomly"
+        # Note: this test might pass when the code is actually bad or
+        # fail when the code is actually good, but this is unlikely
+        ai1 = b.players[b.join_ai_game(b"", 1)].opponent()
+        self.assertTrue(b.valid_grid(ai1.grid))
+        ai2 = b.players[b.join_ai_game(b"", 1)].opponent()
+        self.assertNotEqual(ai1.grid, ai2.grid)
+
 class CullInactiveTests(unittest.TestCase):
     "Tests that cull_inactive culls old games"
     def setUp(self):

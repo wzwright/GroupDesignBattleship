@@ -70,12 +70,26 @@ class ExampleAIPlayer(AIPlayer):
 class RandomAIPlayer(AIPlayer):
     "Bombs random positions"
     def ai_submit_grid(self):
-        # TODO: Make this actually random
-        mygrid = [[0,0,1,0]
-                 ,[0,1,2,1]
-                 ,[0,2,2,2]
-                 ,[0,3,3,3]
-                 ,[0,4,4,4]]
+        mygrid = []
+        ships = [5, 4, 3, 3, 2]
+        for length in ships:
+            while True:
+                newgrid = list(mygrid)
+                start = (random.randint(0,9),
+                         random.randint(0,9))
+                vertical = bool(random.getrandbits(1))
+                if vertical:
+                    end = (start[0], start[1]+length-1)
+                else:
+                    end = (start[0]+length-1, start[1])
+                ship = [start[0], start[1], end[0], end[1]]
+                newgrid.append(ship)
+                if not inside_grid(ship):
+                    continue
+                if not no_overlaps(newgrid):
+                    continue
+                mygrid = list(newgrid)
+                break
         bship_logic_submit_grid(self.pid, python_to_grid(mygrid))
 
     def ai_bomb(self):
@@ -107,14 +121,8 @@ class ImprovedAIPlayer(AIPlayer):
         self.direction = 0
 
     def ai_submit_grid(self):
-        super(ImprovedAIPlayer,self).ai_submit_grid()
-        # TODO: Make this actually random
-        mygrid = [[0,0,1,0]
-                 ,[0,1,2,1]
-                 ,[0,2,2,2]
-                 ,[0,3,3,3]
-                 ,[0,4,4,4]]
-        bship_logic_submit_grid(self.pid, python_to_grid(mygrid))
+        # Use the Random AI placing "algorithm"
+        RandomAIPlayer.ai_submit_grid(self)
 
     def advance_direction(self):
         if self.direction == 3:

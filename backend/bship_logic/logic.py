@@ -232,3 +232,6 @@ def valid_grid(grid):
 def bad_target(x,y):
     # It's probably fine to hardcode the board size
     return (x not in range(10)) or (y not in range(10))
+
+def inside_grid(ship):
+    return all(p in range(10) for p in ship)
