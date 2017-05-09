@@ -334,21 +334,49 @@ class AITests(unittest.TestCase):
 
     def test_random_ai_wins(self):
         "Random AI wins if we don't bomb his ships"
-        pid = b.join_ai_game(b"", 1)
-        self.assertTrue(pid in b.players)
-        me = b.players[pid]
-        other = me.opponent()
-        self.assertNotEqual(other, None)
-        self.assertEqual(me.state_code, b.PlayerState.SUBMIT_GRID)
-        self.assertEqual(other.state_code, b.PlayerState.WAIT_FOR_SUBMIT)
-        b.submit_grid(pid, [[0,0,1,0]
-                           ,[0,1,2,1]
-                           ,[0,2,2,2]
-                           ,[0,3,3,3]
-                           ,[0,4,4,4]])
-        while not me.dead():
-            b.bomb_position(pid, 0, 0)
-        # if this terminates, the test passes
+        for i in range(100):
+            self.setUp()
+            pid = b.join_ai_game(b"", 1)
+            self.assertTrue(pid in b.players)
+            me = b.players[pid]
+            other = me.opponent()
+            self.assertNotEqual(other, None)
+            self.assertEqual(me.state_code, b.PlayerState.SUBMIT_GRID)
+            self.assertEqual(other.state_code, b.PlayerState.WAIT_FOR_SUBMIT)
+            b.submit_grid(pid, [[0,0,1,0]
+                                ,[0,1,2,1]
+                                ,[0,2,2,2]
+                                ,[0,3,3,3]
+                                ,[0,4,4,4]])
+            while not me.dead():
+                b.bomb_position(pid, 0, 0)
+            (_,_,won) = b.get_game_end(pid)
+            self.assertFalse(won)
+            (_,_,aiwon) = b.get_game_end(me.opponent().pid)
+            self.assertTrue(aiwon)
+
+    def test_improved_ai_wins(self):
+        "Improved AI wins if we don't bomb his ships"
+        for i in range(100):
+            self.setUp()
+            pid = b.join_ai_game(b"", 2)
+            self.assertTrue(pid in b.players)
+            me = b.players[pid]
+            other = me.opponent()
+            self.assertNotEqual(other, None)
+            self.assertEqual(me.state_code, b.PlayerState.SUBMIT_GRID)
+            self.assertEqual(other.state_code, b.PlayerState.WAIT_FOR_SUBMIT)
+            b.submit_grid(pid, [[0,0,1,0]
+                                ,[0,1,2,1]
+                                ,[0,2,2,2]
+                                ,[0,3,3,3]
+                                ,[0,4,4,4]])
+            while not me.dead():
+                b.bomb_position(pid, 0, 0)
+            (_,_,won) = b.get_game_end(pid)
+            self.assertFalse(won)
+            (_,_,aiwon) = b.get_game_end(me.opponent().pid)
+            self.assertTrue(aiwon)
 
     def test_random_ai_place(self):
         "Random AI places validly and randomly"
