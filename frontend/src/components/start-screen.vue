@@ -30,7 +30,6 @@
     <button v-on:click="newGame">New Game</button>
     <button v-on:click="joinGame">Join Existing Game</button>
     <button v-on:click="serverGame">Play against the server</button>
-    <button v-on:click="joinRandomGame">Join Random Game</button>
   </div>
 </template>
 
