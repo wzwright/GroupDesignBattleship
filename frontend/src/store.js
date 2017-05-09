@@ -326,5 +326,23 @@ export default new Vuex.Store({
         },
       )
     },
+    waitForGameDied({ dispatch, state }, { okCallback, errorCallback }) {
+      api.waitForGameDied(
+        state.player.ID,
+        () => {
+          if (typeof okCallback === 'function') okCallback()
+        },
+        (e) => {
+          if (e.code === -1000) {
+            // timed out
+            console.warn('Timed out waiting for game died, trying again...')
+            dispatch('waitForGameDied', { okCallback, errorCallback })
+          } else {
+            console.error(`Error waiting for game died: ${e.message}`)
+            if (typeof errorCallback === 'function') errorCallback()
+          }
+        },
+      )
+    },
   },
 })

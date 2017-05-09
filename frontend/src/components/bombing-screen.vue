@@ -51,7 +51,7 @@
       <p v-if="phase === 'wait'">Waiting for your opponent...</p>
       <p v-if="phase === 'gameOver' && won">You win!</p>
       <p v-if="phase === 'gameOver' && !won">You lose!</p>
-      <a v-if="phase === 'gameOver'" href="/" id="playAgain">Play again</a>
+      <a v-if="phase === 'gameOver' || phase ==='gameDied'" href="/" id="playAgain">Play again</a>
     </div>
   </div>
 </template>
@@ -152,6 +152,14 @@ export default {
         })
       },
     })
+
+    this.$store.dispatch('waitForGameDied', {
+      okCallback: () => {
+        this.changePhase('gameDied')
+        alert('sorry, the connection was lost')
+      },
+    })
+
     this.waitForYourTurn()
   },
   methods: {
@@ -159,7 +167,7 @@ export default {
       this.bombTarget = [x, y]
     },
     changePhase(newPhase) {
-      if (this.phase === 'gameOver') return
+      if (this.phase === 'gameOver' || this.phase == 'gameDied') return
       this.phase = newPhase
     },
     bombSubmit() {
