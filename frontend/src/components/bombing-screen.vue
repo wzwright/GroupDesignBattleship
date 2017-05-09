@@ -223,6 +223,7 @@ export default {
 
   p {
     margin: 1em;
+    margin-top: 1em;
     text-align: center;
   }
 }
@@ -261,6 +262,10 @@ export default {
   .message {
     position: relative;
     border: none;
+  }
+
+  .shipContainer p {
+    margin-top: 1em;
   }
 }
 </style>

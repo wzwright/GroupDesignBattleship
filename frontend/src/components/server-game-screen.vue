@@ -57,10 +57,11 @@ export default {
 #levelChoose {
   display: flex;
   flex-direction: column;
+  margin-top: 1em;
 
   button {
     padding: 0.5em;
-    margin: 0.5em;
+    margin: 0.3em;
   }
 }
 </style>
