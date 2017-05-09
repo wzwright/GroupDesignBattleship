@@ -31,7 +31,7 @@
       <button v-on:click="setActiveShip('cruiser')" v-bind:class="selectionClass('cruiser')">Cruiser (3)</button>
       <button v-on:click="setActiveShip('submarine')" v-bind:class="selectionClass('submarine')">Submarine (3)</button>
       <button v-on:click="setActiveShip('destroyer')" v-bind:class="selectionClass('destroyer')">Destroyer (2)</button>
-      <button v-on:click="setActiveRotation()">rotate</button>
+      <button v-on:click="setActiveRotation()">rotate ({{activeRotation}})</button>
       <button id="submit" v-on:click="submitGrid">Submit</button>
     </div>
   </div>
